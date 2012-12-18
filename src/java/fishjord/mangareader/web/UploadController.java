@@ -7,8 +7,9 @@ package fishjord.mangareader.web;
 import fishjord.mangareader.db.Manga;
 import fishjord.mangareader.db.MangaReaderDB;
 import fishjord.mangareader.db.MangaUser;
+import fishjord.mangareader.upload.Upload;
 import fishjord.mangareader.upload.UploadBackgroundTask;
-import fishjord.mangareader.upload.UploadBackgroundTask.UploadStatus;
+import fishjord.mangareader.upload.UploadStatus;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -111,9 +112,6 @@ public class UploadController {
 
     @RequestMapping(value = "/admin/upload_status.spr", method = RequestMethod.GET)
     public ModelAndView getUploadStatus(HttpSession session) {
-        if (SingleObjectSessionUtils.isInSession(session, Manga.class)) {
-            return new ModelAndView("redirect:edit_manga.spr");
-        }
 
         UploadBackgroundTask task = SingleObjectSessionUtils.getFromSession(session, UploadBackgroundTask.class);
 
@@ -122,9 +120,8 @@ public class UploadController {
         }
 
         if (task.getStatus() == UploadStatus.Complete) {
-            Manga upload = task.getResult();
             SingleObjectSessionUtils.removeFromSession(session, task);
-            SingleObjectSessionUtils.addToSession(session, upload);
+            SingleObjectSessionUtils.addToSession(session, task.getResult());
             return new ModelAndView("redirect:edit_manga.spr");
         }
 
@@ -136,51 +133,39 @@ public class UploadController {
 
     @RequestMapping(value = "/admin/edit_manga.spr", method = RequestMethod.GET)
     public ModelAndView getFinalizeUploadView(HttpSession session) {
-        Manga upload = SingleObjectSessionUtils.getFromSession(session, Manga.class);
+        Upload upload = SingleObjectSessionUtils.getFromSession(session, Upload.class);
 
         if (upload == null) {
             return new ModelAndView("redirect:upload.spr");
         }
 
         ModelAndView mav = new ModelAndView("edit_manga");
-        mav.addObject("manga", upload);
+        mav.addObject("manga", upload.getManga());
+        mav.addObject("manga", upload.getNewChapters());
         return mav;
     }
 
     @RequestMapping(value = "/admin/edit_manga.spr", method = RequestMethod.POST)
     public ModelAndView getFinalizeUploadView(HttpSession session, @ModelAttribute("manga") Manga manga) {
-        System.err.println("Finalizing manga " + manga);
-        Manga sessionManga = SingleObjectSessionUtils.getFromSession(session, Manga.class);
-        manga.setId(sessionManga.getId());
-        for (int index = 0; index < manga.getChapters().size(); index++) {
-            sessionManga.getChapters().get(index).setChapterId(sessionManga.getChapters().get(index).getChapterId());
-            sessionManga.getChapters().get(index).setUploadedBy(sessionManga.getChapters().get(index).getUploadedBy());
-            sessionManga.getChapters().get(index).setNewPages(sessionManga.getChapters().get(index).getNewPages());
+        Upload upload = SingleObjectSessionUtils.getFromSession(session, Upload.class);
+
+        if (upload == null) {
+            return new ModelAndView("redirect:upload.spr");
         }
 
-        System.err.println(manga.getId() + "\t" + sessionManga.getId());
-        System.err.println(manga.getTitle() + "\t" + sessionManga.getTitle());
-        System.err.println(manga.getAuthor() + "\t" + sessionManga.getAuthor());
-        System.err.println(manga.getArtist() + "\t" + sessionManga.getArtist());
-        System.err.println(manga.getPublisher() + "\t" + sessionManga.getPublisher());
-        System.err.println(manga.getCircle() + "\t" + sessionManga.getCircle());
-        System.err.println(manga.getScanGroup() + "\t" + sessionManga.getScanGroup());
-        System.err.println(manga.getDescription() + "\t" + sessionManga.getDescription());
-        System.err.println(manga.getPublishedDate() + "\t" + sessionManga.getPublishedDate());
-        System.err.println(manga.getUpdatedDate() + "\t" + sessionManga.getUpdatedDate());
-        System.err.println(manga.getUploadedDate() + "\t" + sessionManga.getUploadedDate());
-        System.err.println(manga.isComplete() + "\t" + sessionManga.isComplete());
-        System.err.println(manga.isMature() + "\t" + sessionManga.isMature());
-        
-        mangaDb.updateManga(manga);
-        SingleObjectSessionUtils.removeFromSession(session, Manga.class);
+        if(upload.getManga().getId() != manga.getId()) {
+            throw new IllegalStateException("Manga ID has been changed, can't commit changes");
+        }
 
-        return new ModelAndView("redirect:/view.spr?id=" + manga.getId());
+        mangaDb.updateManga(manga, upload.getNewChapters());
+        SingleObjectSessionUtils.removeFromSession(session, upload);
+
+        return new ModelAndView("redirect:/summary.spr?id=" + manga.getId());
     }
 
     @RequestMapping(value = "/admin/cancel_upload.spr")
     public ModelAndView cancelUpload(HttpSession session) {
-        SingleObjectSessionUtils.removeFromSession(session, Manga.class);
+        SingleObjectSessionUtils.removeFromSession(session, Upload.class);
         return new ModelAndView("redirect:upload.spr");
     }
 }

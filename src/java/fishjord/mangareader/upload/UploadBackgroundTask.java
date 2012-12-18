@@ -7,6 +7,8 @@ package fishjord.mangareader.upload;
 import fishjord.mangareader.db.Chapter;
 import fishjord.mangareader.db.Manga;
 import fishjord.mangareader.db.MangaReaderDB;
+import fishjord.mangareader.upload.UploadedChapter;
+import fishjord.mangareader.upload.UploadedPage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,22 +25,13 @@ import org.apache.commons.io.IOUtils;
  * @author fishjord
  */
 public class UploadBackgroundTask implements Runnable {
-
-    public static enum UploadStatus {
-
-        Pending, Processing, Complete, Error
-    };
     private UploadStatus status = UploadStatus.Pending;
     private List<String> messages = new ArrayList();
     private String archiveName;
     private ZipInputStream uploadedArchive;
     private MangaReaderDB db;
-    private Manga result;
 
-    private static class UploadedChapter {
-        String titleGuess;
-        List<UploadedPage> pages = new ArrayList();
-    }
+    private Upload result;
 
     public UploadBackgroundTask(MangaReaderDB db, String archiveName, ZipInputStream uploadedArchive) {
         this.db = db;
@@ -50,7 +43,7 @@ public class UploadBackgroundTask implements Runnable {
         this.messages.add(message);
     }
 
-    public Manga getResult() {
+    public Upload getResult() {
         return result;
     }
 
@@ -66,25 +59,27 @@ public class UploadBackgroundTask implements Runnable {
             }
 
             List<UploadedChapter> uploadedChapters = processZipArchive(null, uploadedArchive);
+            Map<Integer, UploadedChapter> newChapters = new HashMap();
 
             int chapCount = manga.getChapters().size();
             UploadedChapter uploadedChapter;
             for (int index = 0; index < uploadedChapters.size(); index++) {
                 int chapNum = index + chapCount + 1;
                 uploadedChapter = uploadedChapters.get(index);
-                
+
                 addMessage("Creating chapter " + chapNum);
                 String titleGuess = uploadedChapter.titleGuess;
                 if(titleGuess == null) {
                     titleGuess = "Chapter " + chapNum;
                 }
-                
-                Chapter c = new Chapter(null, chapNum, uploadedChapter.pages.size(), 1, null, titleGuess, "jrdn.fish@gmail.com");// user.getUsername());
-                c.setNewPages(uploadedChapter.pages);
+
+                Chapter c = new Chapter(chapNum, chapNum, uploadedChapter.pages.size(), 1, null, titleGuess, "jrdn.fish@gmail.com");// user.getUsername());
+                newChapters.put(chapNum, uploadedChapter);
+
                 manga.getChapters().add(c);
             }
             this.status = UploadStatus.Complete;
-            result = manga;
+            result = new Upload(manga, newChapters);
         } catch (Exception e) {
             this.status = UploadStatus.Error;
             addMessage("Error processing upload: " + e.getMessage());
@@ -126,7 +121,7 @@ public class UploadBackgroundTask implements Runnable {
         int b2 = 0xff & buf[1];
         int b3 = 0xff & buf[2];
         int b4 = 0xff & buf[3];
-        
+
         if (buf.length > 1 && b1 == 0x42 && b2 == 0x4d) {
             return "bmp";
         }
@@ -156,9 +151,8 @@ public class UploadBackgroundTask implements Runnable {
         List<UploadedChapter> ret = new ArrayList();
 
         ZipEntry entry;
-        UploadedChapter currChapter = new UploadedChapter();
-        currChapter.titleGuess = titleGuess;
-        ret.add(currChapter);
+
+        List<UploadedPage> pages = new ArrayList();
         while ((entry = zip.getNextEntry()) != null) {
             if (entry.isDirectory()) {
                 ret.addAll(processZipArchive(entry.getName().substring(0, entry.getName().length() - 1), zip));
@@ -166,10 +160,11 @@ public class UploadBackgroundTask implements Runnable {
                 UploadedPage page = processEntry(entry, zip);
                 addMessage("Processed page: " + page);
                 if (page != null) {
-                    currChapter.pages.add(page);
+                    pages.add(page);
                 }
             }
         }
+        ret.add(new UploadedChapter(titleGuess, pages));
 
         return ret;
     }

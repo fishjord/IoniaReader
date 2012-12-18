@@ -5,6 +5,7 @@
 package fishjord.mangareader.db;
 
 import fishjord.mangareader.db.MangaUser.MangaUserRole;
+import fishjord.mangareader.upload.UploadedChapter;
 import fishjord.mangareader.upload.UploadedPage;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,31 +48,31 @@ public class MangaReaderDB {
     public void setPageImageDir(File dir) {
         this.pageImageDir = dir;
     }
-    
+
     public File getChapterDir(int mangaId, int chapterId) {
         return new File(pageImageDir, mangaId + "/" + chapterId);
     }
-    
+
     private void saveChapterImages(int mangaId, int chapId, List<UploadedPage> newPages) throws IOException {
         File chapDir = getChapterDir(mangaId, chapId);
-        
+
         if(chapDir.exists()) {
             FileUtils.deleteDirectory(chapDir);
         }
-        
+
         if(!chapDir.mkdirs()) {
             throw new IOException("Failed to make chapter directory " + chapDir);
         }
-        
+
         for(int index = 0;index < newPages.size();index++) {
             UploadedPage page = newPages.get(index);
-                        
+
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(page.getImage()));
             ImageIO.write(image, "png", new File(chapDir, index + ".png"));
         }
     }
 
-    public int updateManga(Manga m) {
+    public int updateManga(Manga m, Map<Integer, UploadedChapter> newChapters) {
         Connection conn = null;
         PreparedStatement mangaInsertStmt = null;
         PreparedStatement mangaUpdateStmt = null;
@@ -127,19 +129,16 @@ public class MangaReaderDB {
             stmt.execute();
 
             for (Chapter c : m.getChapters()) {
-                if (c.getChapterId() == null) {
+                if (newChapters.containsKey(c.getChapterId())) {
                     stmt = chapterInsertStmt;
                     rset = tmp.executeQuery("select nextval('chapter_id_seq')");
                     rset.next();
                     c.setChapterId(rset.getInt(1));
                     rset.close();
-                    
+
                     stmt.setString(6, "jrdn.fish@gmail.com");
                     stmt.setInt(7, m.getId());
-                }
-                
-                if(c.getNewPages() != null) {
-                    this.saveChapterImages(m.getId(), c.getChapterId(), c.getNewPages());
+                    this.saveChapterImages(m.getId(), c.getChapterId(), newChapters.get(c.getChapterId()).getPages());
                 }
 
                 stmt.setString(1, c.getChapterTitle());
