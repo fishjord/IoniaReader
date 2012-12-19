@@ -1,0 +1,26 @@
+add user support
+    user owned manga?
+    users can edit manga they uploaded
+    move uploaded_by from chapter to manga
+    add editor role (admin?), can edit any manga
+    add deleter role, can delete manga/chapters of manga (low priority)
+manga listing page
+      sorting by update date, chapters,
+      filtering by tags and genres
+search based on
+       author
+       title
+       artist
+       circle
+       scanlation group
+       uploaded between?
+mature click through
+user feedback
+     comments?
+     likes?
+     ratings?*
+read manga javascript
+     keyboard navigation (left, right, space)
+     click navigation (next page)
+     chapter jumping
+     page jumping

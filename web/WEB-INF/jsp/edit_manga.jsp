@@ -15,6 +15,10 @@
     </head>
     <body>
         <form:form action="edit_manga.spr" commandName="manga" method="POST" autocomplete="false">
+            <form:hidden path="id" />
+            <form:hidden path="uploadedDate" />
+            <form:hidden path="updatedDate" />
+
             <form:label path="id" cssClass="manga-edit-label">Id</form:label><form:input path="id" disabled="true" cssClass="manga-edit-field" /><br/>
             <form:label path="title" cssClass="manga-edit-label">Title</form:label><form:input path="title" cssClass="manga-edit-field" /><br/>
             <form:label path="author" cssClass="manga-edit-label">Author</form:label><form:input path="author" cssClass="manga-edit-field" /><br/>
@@ -28,9 +32,9 @@
             <form:label path="updatedDate" cssClass="manga-edit-label">Last Updated On</form:label><form:input path="updatedDate" disabled="true" cssClass="manga-edit-field" /><br/>
             <form:label path="complete" cssClass="manga-edit-label">Complete</form:label><form:checkbox path="complete" cssClass="manga-edit-field" /><br/>
             <form:label path="mature" cssClass="manga-edit-label">Mature</form:label><form:checkbox path="mature" cssClass="manga-edit-field" /><br/>
-            <br/>
-            <table>
-                <tr>
+                <br/>
+                <table>
+                    <tr>
                     <%--<th>Delete</th>--%><th>Chapter Id</th><th>Chapter Number</th><th>Chapter Title</th><th>Title Page</th><th>Number of Pages</th><th>Uploaded On</th><th>Uploaded By</th>
                 </tr>
                 <c:forEach var="chapter" varStatus="status" items="${manga.chapters}">
@@ -43,19 +47,23 @@
                         <td><form:input disabled="true" path="chapters[${status.index}].numPages" /></td>
                         <td><form:input disabled="true" path="chapters[${status.index}].uploadDate" /></td>
                         <td><form:input disabled="true" path="chapters[${status.index}].uploadedBy" /></td>
+                        <form:hidden path="chapters[${status.index}].chapterId" />
+                        <form:hidden path="chapters[${status.index}].numPages" />
+                        <form:hidden path="chapters[${status.index}].uploadDate" />
+                        <form:hidden path="chapters[${status.index}].uploadedBy" />
                     </tr>
-                    <c:if test="${chapter.newPages != null}">
+                    <c:if test="${newChapters[chapter.chapterId] != null}">
                         <tr><td colspan="8">
                         <center>
-                        <c:forEach var="newPage" items="${chapter.newPages}">
-                            ${newPage}<br/>
-                        </c:forEach>
+                            <c:forEach var="newPage" items="${newChapters[chapter.chapterId].pages}">
+                                ${newPage}<br/>
+                            </c:forEach>
                         </center>
-                        </td></tr>
-                    </c:if>
-                </c:forEach>
-            </table>
-            <input type="submit" name="Save"/> <a href="cancel_upload.spr">Cancel</a>
-        </form:form>
-    </body>
+                    </td></tr>
+                </c:if>
+            </c:forEach>
+    </table>
+    <input type="submit" name="Save"/> <a href="cancel_upload.spr">Cancel</a>
+</form:form>
+</body>
 </html>
