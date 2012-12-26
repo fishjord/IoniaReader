@@ -16,7 +16,6 @@ public class Chapter {
     private Integer chapterId;
     private Date uploadDate;
     private String chapterTitle;
-    private String uploadedBy;
     private Integer chapterNumber;
     private int numPages;
     private int titlePage;
@@ -24,11 +23,10 @@ public class Chapter {
     public Chapter() {
     }
     
-    public Chapter(Integer chapterId, Integer chapterNumber, int numPages, int titlePage, Date uploadDate, String chapterTitle, String uploadedBy) {
+    public Chapter(Integer chapterId, Integer chapterNumber, int numPages, int titlePage, Date uploadDate, String chapterTitle) {
         this.chapterId = chapterId;
         this.uploadDate = uploadDate;
         this.chapterTitle = chapterTitle;
-        this.uploadedBy = uploadedBy;
         this.chapterNumber = chapterNumber;
         this.numPages = numPages;
         this.titlePage = titlePage;
@@ -38,22 +36,22 @@ public class Chapter {
         return chapterId;
     }
 
+    public void setChapterId(Integer chapterId) {
+        this.chapterId = chapterId;
+    }
+
     public Date getUploadDate() {
         return uploadDate;
+    }
+
+    public void setUploadDate(Date uploadDate) {
+        this.uploadDate = uploadDate;
     }
 
     public String getChapterTitle() {
         return chapterTitle;
     }
 
-    public String getUploadedBy() {
-        return uploadedBy;
-    }
-
-    public void setUploadedBy(String uploadedBy) {
-        this.uploadedBy = uploadedBy;
-    }
-    
     public void setChapterTitle(String chapterTitle) {
         this.chapterTitle = chapterTitle;
     }
@@ -62,16 +60,16 @@ public class Chapter {
         return chapterNumber;
     }
 
-    public void setChapterId(Integer chapterId) {
-        this.chapterId = chapterId;
-    }
-
     public void setChapterNumber(Integer chapterNumber) {
         this.chapterNumber = chapterNumber;
     }
-    
+
     public int getNumPages() {
         return numPages;
+    }
+
+    public void setNumPages(int numPages) {
+        this.numPages = numPages;
     }
 
     public int getTitlePage() {

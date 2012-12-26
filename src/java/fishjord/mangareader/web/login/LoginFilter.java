@@ -5,6 +5,7 @@
 package fishjord.mangareader.web.login;
 
 import fishjord.mangareader.db.MangaUser;
+import fishjord.mangareader.web.ContextRelativeRedirectURL;
 import fishjord.mangareader.web.SingleObjectSessionUtils;
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -31,10 +32,11 @@ public class LoginFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse)sr1;
         HttpSession session = request.getSession();
         
+        System.err.println("Request for protected resource " + request.getRequestURL().toString());
+        
         if(!SingleObjectSessionUtils.isInSession(session, MangaUser.class)) {
-            String redirect = request.getRequestURL().toString();
-            
-            session.setAttribute(LoginController.REDIRECT_SESSION_KEY, redirect);
+            System.err.println("No user in session, redirecting to login page");
+            SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
             response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/login.spr"));
         } else {
             fc.doFilter(sr, sr1);

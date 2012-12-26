@@ -18,6 +18,7 @@
             <form:hidden path="id" />
             <form:hidden path="uploadedDate" />
             <form:hidden path="updatedDate" />
+            <form:hidden path="uploadedBy" />
 
             <form:label path="id" cssClass="manga-edit-label">Id</form:label><form:input path="id" disabled="true" cssClass="manga-edit-field" /><br/>
             <form:label path="title" cssClass="manga-edit-label">Title</form:label><form:input path="title" cssClass="manga-edit-field" /><br/>
@@ -30,12 +31,19 @@
             <form:label path="publishedDate" cssClass="manga-edit-label">Published Date (yyyy-mm-dd)</form:label><form:input path="publishedDate" cssClass="manga-edit-field" /><br/>
             <form:label path="uploadedDate" cssClass="manga-edit-label">Uploaded On</form:label><form:input path="uploadedDate" disabled="true" cssClass="manga-edit-field" /><br/>
             <form:label path="updatedDate" cssClass="manga-edit-label">Last Updated On</form:label><form:input path="updatedDate" disabled="true" cssClass="manga-edit-field" /><br/>
+            <form:label path="uploadedBy" cssClass="manga-edit-label">Uploaded By</form:label><form:input path="uploadedBy" disabled="true" cssClass="manga-edit-field" /><br/>
             <form:label path="complete" cssClass="manga-edit-label">Complete</form:label><form:checkbox path="complete" cssClass="manga-edit-field" /><br/>
             <form:label path="mature" cssClass="manga-edit-label">Mature</form:label><form:checkbox path="mature" cssClass="manga-edit-field" /><br/>
+            <br/><br/>
+            <c:forEach var="tag" items="${allTags}">
+                <form:checkbox path="tags" value="${tag}" />${tag}<br/>
+            </c:forEach>
+                <br/>
+                <br/>
                 <br/>
                 <table>
                     <tr>
-                    <%--<th>Delete</th>--%><th>Chapter Id</th><th>Chapter Number</th><th>Chapter Title</th><th>Title Page</th><th>Number of Pages</th><th>Uploaded On</th><th>Uploaded By</th>
+                    <%--<th>Delete</th>--%><th>Chapter Id</th><th>Chapter Number</th><th>Chapter Title</th><th>Title Page</th><th>Number of Pages</th><th>Uploaded On</th>
                 </tr>
                 <c:forEach var="chapter" varStatus="status" items="${manga.chapters}">
                     <tr>
@@ -46,11 +54,9 @@
                         <td><form:input path="chapters[${status.index}].titlePage" /></td>
                         <td><form:input disabled="true" path="chapters[${status.index}].numPages" /></td>
                         <td><form:input disabled="true" path="chapters[${status.index}].uploadDate" /></td>
-                        <td><form:input disabled="true" path="chapters[${status.index}].uploadedBy" /></td>
                         <form:hidden path="chapters[${status.index}].chapterId" />
                         <form:hidden path="chapters[${status.index}].numPages" />
                         <form:hidden path="chapters[${status.index}].uploadDate" />
-                        <form:hidden path="chapters[${status.index}].uploadedBy" />
                     </tr>
                     <c:if test="${newChapters[chapter.chapterId] != null}">
                         <tr><td colspan="8">

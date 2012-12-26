@@ -25,17 +25,17 @@
         <span class="manga-label">Last Updated On</span><span class="manga-field">${manga.updatedDate}</span><br/>
         <span class="manga-label">Complete</span><span class="manga-field">${manga.complete}</span><br/>
         <span class="manga-label">Mature</span><span class="manga-field">${manga.mature}</span><br/>
-        <br/>
+        <br/><br/>
+        <span class="manga-label">Tags</span><c:forEach var="tag" items="${manga.tags}" varStatus="status">${tag}<c:if test="${not status.last}">, </c:if></c:forEach>
         <table>
             <tr>
-                <th>Chapter</th><th>Pages</th><th>Uploaded</th><th>By</th>
+                <th>Chapter</th><th>Pages</th><th>Uploaded</th>
             </tr>
             <c:forEach var="chapter" varStatus="status" items="${manga.chapters}">
                 <tr>
                     <td><a href="read.spr?id=${manga.id}&chap=${chapter.chapterId}">${chapter.chapterTitle}</a></td>
                     <td>${chapter.numPages}</td>
                     <td>${chapter.uploadDate}</td>
-                    <td>${chapter.uploadedBy}</td>
                 </tr>
             </c:forEach>
         </table>

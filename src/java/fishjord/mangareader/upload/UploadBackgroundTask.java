@@ -7,15 +7,15 @@ package fishjord.mangareader.upload;
 import fishjord.mangareader.db.Chapter;
 import fishjord.mangareader.db.Manga;
 import fishjord.mangareader.db.MangaReaderDB;
-import fishjord.mangareader.upload.UploadedChapter;
-import fishjord.mangareader.upload.UploadedPage;
+import fishjord.mangareader.db.MangaUser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.IOUtils;
@@ -30,13 +30,15 @@ public class UploadBackgroundTask implements Runnable {
     private String archiveName;
     private ZipInputStream uploadedArchive;
     private MangaReaderDB db;
+    private MangaUser uploader;
 
     private Upload result;
 
-    public UploadBackgroundTask(MangaReaderDB db, String archiveName, ZipInputStream uploadedArchive) {
+    public UploadBackgroundTask(MangaReaderDB db, MangaUser uploader, String archiveName, ZipInputStream uploadedArchive) {
         this.db = db;
         this.uploadedArchive = uploadedArchive;
         this.archiveName = archiveName;
+        this.uploader = uploader;
     }
 
     private void addMessage(String message) {
@@ -56,6 +58,8 @@ public class UploadBackgroundTask implements Runnable {
             Manga tmp = db.getManga(manga.getTitle());
             if (tmp != null) {
                 manga = tmp;
+            } else {
+                manga.setUploadedBy(uploader.getUsername());
             }
 
             List<UploadedChapter> uploadedChapters = processZipArchive(null, uploadedArchive);
@@ -73,7 +77,7 @@ public class UploadBackgroundTask implements Runnable {
                     titleGuess = "Chapter " + chapNum;
                 }
 
-                Chapter c = new Chapter(chapNum, chapNum, uploadedChapter.pages.size(), 1, null, titleGuess, "jrdn.fish@gmail.com");// user.getUsername());
+                Chapter c = new Chapter(chapNum, chapNum, uploadedChapter.pages.size(), 1, null, titleGuess);
                 newChapters.put(chapNum, uploadedChapter);
 
                 manga.getChapters().add(c);
@@ -83,6 +87,7 @@ public class UploadBackgroundTask implements Runnable {
         } catch (Exception e) {
             this.status = UploadStatus.Error;
             addMessage("Error processing upload: " + e.getMessage());
+            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, "Error processing upload from user " + uploader.getUsername(), e);
         }
     }
 

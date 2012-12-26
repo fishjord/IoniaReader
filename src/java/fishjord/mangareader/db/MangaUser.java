@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
  * @author fishjord
  */
 public class MangaUser {    
-    public enum MangaUserRole { view, viewMature, editMetaData, uploadChapters, createManga, createUsers, deleteManga, deleteChapter };
+    public enum MangaUserRole { manga_user, admin };
     private Set<MangaUserRole> roles;
     private String username;
     private String email;

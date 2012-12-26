@@ -6,6 +6,7 @@ package fishjord.mangareader.web.login;
 
 import fishjord.mangareader.db.MangaReaderDB;
 import fishjord.mangareader.db.MangaUser;
+import fishjord.mangareader.web.ContextRelativeRedirectURL;
 import fishjord.mangareader.web.SingleObjectSessionUtils;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +25,6 @@ public class LoginController {
     
     @Autowired
     private MangaReaderDB mangaDb;
-    public static String REDIRECT_SESSION_KEY = "redirect_to";
     
     @RequestMapping("/login.spr")
     public void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -32,10 +32,12 @@ public class LoginController {
         MangaUser user = mangaDb.getMangaUser(request.getUserPrincipal().getName());
         SingleObjectSessionUtils.addToSession(session, user);
         
-        String newUrl = (String)session.getAttribute(REDIRECT_SESSION_KEY);
+        ContextRelativeRedirectURL url = SingleObjectSessionUtils.getFromSession(session, ContextRelativeRedirectURL.class);
         
-        if(newUrl == null) {
-            response.sendRedirect(newUrl);
+        System.err.println("User " + user.getDisplayName() + " logged in, redirecting to " + url);
+        
+        if(url != null) {
+            response.sendRedirect(response.encodeRedirectURL(url.getRedirectUrl()));
         } else {
             response.sendRedirect(request.getContextPath());
         }

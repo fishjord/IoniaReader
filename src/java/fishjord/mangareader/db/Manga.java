@@ -46,6 +46,7 @@ public class Manga {
     private Date updatedDate;
     private boolean complete;
     private boolean mature;
+    private String uploadedBy;
     
     private List<Chapter> chapters;
     private List<String> tags;
@@ -55,7 +56,7 @@ public class Manga {
         tags = new ArrayList();
     }
 
-    Manga(Integer id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Date publishedDate, Date uploadedDate, Date updatedDate, boolean complete, boolean mature, List<Chapter> chapters, List<String> tags) {
+    Manga(Integer id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Date publishedDate, Date uploadedDate, Date updatedDate, String uploadedBy, boolean complete, boolean mature, List<Chapter> chapters, List<String> tags) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -69,8 +70,9 @@ public class Manga {
         this.updatedDate = updatedDate;
         this.complete = complete;
         this.mature = mature;
-        this.chapters = Collections.unmodifiableList(chapters);
-        this.tags = Collections.unmodifiableList(tags);
+        this.uploadedBy = uploadedBy;
+        this.chapters = chapters;
+        this.tags = tags;
     }
 
     public Integer getId() {
@@ -183,5 +185,13 @@ public class Manga {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public String getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(String uploadedBy) {
+        this.uploadedBy = uploadedBy;
     }
 }

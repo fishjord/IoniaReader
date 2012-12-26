@@ -68,10 +68,6 @@ public class UploadController {
         MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
         ModelAndView mav = new ModelAndView();
 
-        //if (user == null) {
-        //    return new ModelAndView("redirect:/login.spr");
-        //}
-
         //if (!user.isUserInRole(MangaUserRole.createManga)) {
         //    mav.setViewName("upload");
         //    mav.addObject("error", "User " + user.getDisplayName() + " cannot create manga");
@@ -98,7 +94,7 @@ public class UploadController {
         ZipInputStream zip;
         try {
             zip = new ZipInputStream(item.getInputStream());
-            UploadBackgroundTask task = new UploadBackgroundTask(mangaDb, item.getName(), zip);
+            UploadBackgroundTask task = new UploadBackgroundTask(mangaDb, user, item.getName(), zip);
             SingleObjectSessionUtils.addToSession(session, task);
             threadpool.submit(task);
 
@@ -141,7 +137,8 @@ public class UploadController {
 
         ModelAndView mav = new ModelAndView("edit_manga");
         mav.addObject("manga", upload.getManga());
-        mav.addObject("manga", upload.getNewChapters());
+        mav.addObject("newChapters", upload.getNewChapters());
+        mav.addObject("allTags", mangaDb.getTagList());
         return mav;
     }
 
