@@ -5,7 +5,7 @@
 package fishjord.mangareader.upload;
 
 import fishjord.mangareader.db.Manga;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,21 +14,18 @@ import java.util.Map;
  */
 public class Upload {
     private Manga manga;
-    private Map<Integer, UploadedChapter> newChapters;
+    private List<UploadedChapter> newChapters;
 
-    public Upload(Manga manga, Map<Integer, UploadedChapter> newChapters) {
+    public Upload(Manga manga, List<UploadedChapter> newChapters) {
         this.manga = manga;
         this.newChapters = newChapters;
     }
 
-    public Map<Integer, UploadedChapter> getNewChapters() {
+    public List<UploadedChapter> getNewChapters() {
         return newChapters;
     }
 
     public Manga getManga() {
         return manga;
     }
-
-
-
 }

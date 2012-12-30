@@ -4,47 +4,44 @@
  */
 package fishjord.mangareader.db;
 
-import fishjord.mangareader.upload.UploadedPage;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 /**
  *
  * @author fishjord
  */
 public class Chapter {
-    private Integer chapterId;
-    private Date uploadDate;
+    private String id;
+    private Calendar uploadDate;
     private String chapterTitle;
     private Integer chapterNumber;
     private int numPages;
-    private int titlePage;
     
     public Chapter() {
     }
     
-    public Chapter(Integer chapterId, Integer chapterNumber, int numPages, int titlePage, Date uploadDate, String chapterTitle) {
-        this.chapterId = chapterId;
+    public Chapter(String id, String chapterTitle, Integer chapterNumber, int numPages, Calendar uploadDate) {
+        this.id = id;
         this.uploadDate = uploadDate;
         this.chapterTitle = chapterTitle;
         this.chapterNumber = chapterNumber;
         this.numPages = numPages;
-        this.titlePage = titlePage;
     }
 
-    public Integer getChapterId() {
-        return chapterId;
+    public String getId() {
+        return id;
     }
 
-    public void setChapterId(Integer chapterId) {
-        this.chapterId = chapterId;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public Date getUploadDate() {
+    public Calendar getUploadDate() {
         return uploadDate;
     }
 
-    public void setUploadDate(Date uploadDate) {
+    public void setUploadDate(Calendar uploadDate) {
         this.uploadDate = uploadDate;
     }
 
@@ -72,11 +69,8 @@ public class Chapter {
         this.numPages = numPages;
     }
 
-    public int getTitlePage() {
-        return titlePage;
-    }
-
-    public void setTitlePage(int titlePage) {
-        this.titlePage = titlePage;
+    @Override
+    public String toString() {
+        return "Chapter{" + "id=" + id + ", uploadDate=" + uploadDate + ", chapterTitle=" + chapterTitle + ", chapterNumber=" + chapterNumber + ", numPages=" + numPages + '}';
     }
 }

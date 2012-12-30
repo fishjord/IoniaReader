@@ -4,10 +4,11 @@
  */
 package fishjord.mangareader.db;
 
+import fishjord.mangareader.jcr.MangaDAO.DAOSession;
 import java.util.Date;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -20,12 +21,18 @@ public class MangaUser {
     private String email;
     private String displayName;
     private Date joinedAt;
+    private DAOSession session;
     
-    MangaUser(String username, String displayName, Date joinedAt, Set<MangaUserRole> roles) {
+    public MangaUser(String username) {
+        this(username, username, new Date(), new HashSet(), null);
+    }
+    
+    MangaUser(String username, String displayName, Date joinedAt, Set<MangaUserRole> roles, DAOSession session) {
         this.username = this.email = username;
         this.roles = Collections.unmodifiableSet(roles);
         this.displayName = displayName;
         this.joinedAt = joinedAt;
+        this.session = session;
     }
 
     public boolean isUserInRole(MangaUserRole role) {
@@ -46,5 +53,9 @@ public class MangaUser {
 
     public Date getJoinedAt() {
         return joinedAt;
+    }
+
+    public DAOSession getSession() {
+        return session;
     }
 }

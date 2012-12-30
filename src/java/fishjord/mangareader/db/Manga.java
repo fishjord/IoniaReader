@@ -4,36 +4,17 @@
  */
 package fishjord.mangareader.db;
 
-import fishjord.mangareader.upload.UploadedPage;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
  * @author fishjord
  */
-public class Manga {
-    /*
-     *  id           | integer                     | not null
- title        | character varying(255)      |
- author       | character varying(255)      |
- artist       | character varying(255)      |
- publisher    | character varying(255)      |
- circle       | character varying(255)      |
- scan_grp     | character varying(255)      |
- description  | character varying(4096)     |
- published_on | date                        |
- uploaded_at  | timestamp without time zone | default now()
- updated_at   | timestamp without time zone | default now()
- complete     | boolean                     | default false
- mature       | boolean                     | default true
-
-     */
-    
-    private Integer id;
+public class Manga {    
+    private String id;
     private String title;
     private String author;
     private String artist;
@@ -41,9 +22,9 @@ public class Manga {
     private String circle;
     private String scanGroup;
     private String description;
-    private Date publishedDate;
-    private Date uploadedDate;
-    private Date updatedDate;
+    private Calendar publishedDate;
+    private Calendar uploadedDate;
+    private Calendar updatedDate;
     private boolean complete;
     private boolean mature;
     private String uploadedBy;
@@ -56,7 +37,7 @@ public class Manga {
         tags = new ArrayList();
     }
 
-    Manga(Integer id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Date publishedDate, Date uploadedDate, Date updatedDate, String uploadedBy, boolean complete, boolean mature, List<Chapter> chapters, List<String> tags) {
+    Manga(String id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Calendar publishedDate, Calendar uploadedDate, Calendar updatedDate, String uploadedBy, boolean complete, boolean mature, List<Chapter> chapters, List<String> tags) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -75,7 +56,7 @@ public class Manga {
         this.tags = tags;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
@@ -107,15 +88,15 @@ public class Manga {
         return description;
     }
 
-    public Date getPublishedDate() {
+    public Calendar getPublishedDate() {
         return publishedDate;
     }
 
-    public Date getUploadedDate() {
+    public Calendar getUploadedDate() {
         return uploadedDate;
     }
 
-    public Date getUpdatedDate() {
+    public Calendar getUpdatedDate() {
         return updatedDate;
     }
 
@@ -135,7 +116,7 @@ public class Manga {
         return tags;
     }
     
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -167,7 +148,7 @@ public class Manga {
         this.description = description;
     }
 
-    public void setPublishedDate(Date publishedDate) {
+    public void setPublishedDate(Calendar publishedDate) {
         this.publishedDate = publishedDate;
     }
 
@@ -193,5 +174,18 @@ public class Manga {
 
     public void setUploadedBy(String uploadedBy) {
         this.uploadedBy = uploadedBy;
+    }
+
+    public void setUpdatedDate(Calendar updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    public void setUploadedDate(Calendar uploadedDate) {
+        this.uploadedDate = uploadedDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Manga{" + "id=" + id + ", title=" + title + ", author=" + author + ", artist=" + artist + ", publisher=" + publisher + ", circle=" + circle + ", scanGroup=" + scanGroup + ", description=" + description + ", publishedDate=" + publishedDate + ", uploadedDate=" + uploadedDate + ", updatedDate=" + updatedDate + ", complete=" + complete + ", mature=" + mature + ", uploadedBy=" + uploadedBy + ", chapters=" + chapters + ", tags=" + tags + '}';
     }
 }

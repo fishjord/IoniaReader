@@ -42,7 +42,7 @@ public class UploadController {
 
     @Autowired
     private ThreadPoolTaskExecutor threadpool;
-    @Autowired
+    
     private MangaReaderDB mangaDb;
 
     @InitBinder
@@ -138,7 +138,7 @@ public class UploadController {
         ModelAndView mav = new ModelAndView("edit_manga");
         mav.addObject("manga", upload.getManga());
         mav.addObject("newChapters", upload.getNewChapters());
-        mav.addObject("allTags", mangaDb.getTagList());
+        //mav.addObject("allTags", mangaDb.getTagList());
         return mav;
     }
 
@@ -154,7 +154,7 @@ public class UploadController {
             throw new IllegalStateException("Manga ID has been changed, can't commit changes");
         }
 
-        mangaDb.updateManga(manga, upload.getNewChapters());
+        //mangaDb.updateManga(manga, upload.getNewChapters());
         SingleObjectSessionUtils.removeFromSession(session, upload);
 
         return new ModelAndView("redirect:/summary.spr?id=" + manga.getId());

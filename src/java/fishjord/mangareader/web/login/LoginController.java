@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class LoginController {
     
-    @Autowired
+    
     private MangaReaderDB mangaDb;
     
     @RequestMapping("/login.spr")

@@ -13,11 +13,17 @@ import java.util.List;
  */
 public class UploadedChapter {
     String titleGuess;
+    String id;
     List<UploadedPage> pages;
 
-    public UploadedChapter(String titleGuess, List<UploadedPage> pages) {
+    public UploadedChapter(String id, String titleGuess, List<UploadedPage> pages) {
         this.titleGuess = titleGuess;
+        this.id = id;
         this.pages = pages;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public List<UploadedPage> getPages() {
