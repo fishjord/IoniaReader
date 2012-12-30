@@ -6,3 +6,5 @@ repository/
 repository.xml
 *.log*
 *.class
+*~
+*.zip
