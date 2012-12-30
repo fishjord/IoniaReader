@@ -1,0 +1,8 @@
+build/
+dist/
+web/WEB-INF/lib/*
+lib/
+repository/
+repository.xml
+*.log*
+*.class
