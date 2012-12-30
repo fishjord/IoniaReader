@@ -14,6 +14,12 @@
     <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/>
     -->
     
+     <!--     
+    <bean id="mangaDAO" class="fishjord.mangareader.jcr.MangaDAO">
+        <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository</value></constructor-arg>
+        <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository.xml</value></constructor-arg>
+    </bean>
+    -->
     
     <context:component-scan base-package="fishjord.mangareader.web"/>
     <context:annotation-config/>

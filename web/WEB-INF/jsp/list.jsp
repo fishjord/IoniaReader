@@ -4,33 +4,30 @@
     Author     : fishjord
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib prefix="t" tagdir="/WEB-INF/tags" %>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Manga Listing</title>
-    </head>
-    <body>
-        <table>
-            <tr></tr>
-            <c:forEach var="manga" items="${mangaList}">
-                <tr>
-                    <td class="manga-field"><a href="summary.spr?id=${manga.id}">${manga.title}</a><td/>
-                    <td>${manga.author}</td>
-                    <td>${manga.artist}</td>
-                    <td>${manga.publisher}</td>
-                    <td>${manga.circle}</td>
-                    <td>${manga.scanGroup}</td>
-                    <td>${manga.description}</td>
-                    <td>${manga.publishedDate}</td>
-                    <td>${manga.uploadedDate}</td>
-                    <td>${manga.updatedDate}</td>
-                    <%--<td>${manga.completed}</td>--%>
-                    <td>${manga.numChapters}</td>
-                </tr>
-            </c:forEach>
-        </table>
-    </body>
-</html>
+<t:wrapper title="Manga Listing">
+    <table>
+        <tr></tr>
+        <c:forEach var="manga" items="${mangaList}">
+            <tr>
+                <td class="manga-field"><a href="summary.spr?id=${manga.id}">${manga.title}</a><td/>
+                <td>${manga.author}</td>
+                <td>${manga.artist}</td>
+                <td>${manga.publisher}</td>
+                <td>${manga.circle}</td>
+                <td>${manga.scanGroup}</td>
+                <td>${manga.description}</td>
+                <td><c:if test="${manga.publishedDate != null}"><fmt:formatDate value="${manga.publishedDate.time}" /></c:if></td>
+                <td><c:if test="${manga.uploadedDate != null}"><fmt:formatDate value="${manga.uploadedDate.time}" /></c:if></td>
+                <td><c:if test="${manga.updatedDate != null}"><fmt:formatDate value="${manga.updatedDate.time}" /></c:if></td>
+                <%--<td>${manga.completed}</td>--%>
+                <td>${fn:length(manga.chapters)}</td>
+            </tr>
+        </c:forEach>
+    </table>
+</t:wrapper>

@@ -20,17 +20,16 @@
     p:username="${jdbc.username}"
     p:password="${jdbc.password}" /-->
           
-    <bean id="mangaDatabase"
+    <!--<bean id="mangaDatabase"
           class="org.springframework.jdbc.datasource.DriverManagerDataSource"
           p:driverClassName="org.postgresql.Driver"
           p:url="jdbc:postgresql://arael/manga_db"
           p:username="manga"
-          p:password="manga" />
-            
+          p:password="manga" />-->
           
-    <bean id="mangaDB" class="fishjord.mangareader.db.MangaReaderDB">
-        <property name="dataSource" ref="mangaDatabase" />
-        <property name="pageImageDir" value="Z:/fishjord/NetBeansProjects/MangaReader/manga_dir/" />
+    <bean id="mangaDAO" class="fishjord.mangareader.jcr.MangaDAO" destroy-method="close">
+        <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository</value></constructor-arg>
+        <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository.xml</value></constructor-arg>
     </bean>
     
     <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">

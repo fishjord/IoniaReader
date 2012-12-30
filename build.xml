@@ -7,7 +7,7 @@
 <!-- the Compile on Save feature is turned off for the project. -->
 <!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
 <!-- in the project's Project Properties dialog box.-->
-<project name="MangaReader" default="default" basedir=".">
+<project name="MangaReader" default="default" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
     <description>Builds, tests, and runs the project MangaReader.</description>
     <import file="nbproject/build-impl.xml"/>
     <!--
@@ -68,4 +68,8 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="resolve" description="--> retrieve dependencies with ivy">
+      <ivy:retrieve />
+    </target>
+
 </project>

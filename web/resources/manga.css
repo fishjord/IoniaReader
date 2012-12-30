@@ -1,0 +1,65 @@
+/* 
+    Document   : manga
+    Created on : Dec 30, 2012, 1:46:14 AM
+    Author     : fishjord
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.container {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #F1AADC;
+}
+
+.header {
+    margin: 0 auto;
+    width: 900px;
+    background-color: #F15EC5;
+}
+
+.banner {
+    padding-left: 10px;
+    padding-bottom: 50px;
+    padding-top: 50px;
+    text-align: left;
+}
+
+.content {
+    background-color: white;
+    margin-bottom: 5%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    width: 900px;
+    height: 100%;
+}
+
+.label {
+    width: 300px;
+    text-align: right;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.field {
+    padding-left: 10px;
+}
+
+#manga_page {
+    margin: 0 auto;
+}
