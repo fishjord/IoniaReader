@@ -2,15 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.jcr;
+package fishjord.ionia.jcr;
 
-import fishjord.mangareader.db.Chapter;
-import fishjord.mangareader.db.Manga;
-import fishjord.mangareader.db.MangaUser;
-import fishjord.mangareader.jcr.MangaDAO.DAOSession;
-import fishjord.mangareader.upload.Upload;
-import fishjord.mangareader.upload.UploadUtils;
+import fishjord.ionia.db.Manga;
+import fishjord.ionia.db.MangaUser;
+import fishjord.ionia.jcr.MangaDAO.DAOSession;
+import fishjord.ionia.upload.Upload;
+import fishjord.ionia.upload.UploadUtils;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -39,8 +40,12 @@ public class JCRUtils {
 
     private static void createNewRepo() throws Exception {
         Repository repo = new TransientRepository();
-        RepositoryImpl impl = null;
-        Session session = repo.login(new SimpleCredentials("manga", "manga".toCharArray()));
+        Session session = repo.login(new SimpleCredentials("admin", "admin".toCharArray()));
+
+        if (session == null) {
+            System.exit(1);
+        }
+
         try {
             Node root = session.getRootNode();
             Node n = root.addNode("manga");
@@ -178,7 +183,9 @@ public class JCRUtils {
         Class clazz = o.getClass();
         for (Property prop : JcrUtils.getProperties(addTo)) {
             String name = prop.getName();
-            Value value = prop.getValue();
+            if(prop.isMultiple()) {
+                continue;
+            }
             try {
                 Method getter = null;
                 try {
@@ -190,6 +197,7 @@ public class JCRUtils {
                 if (getter == null) {
                     continue;
                 }
+                Value value = prop.getValue();
 
                 Class rettype = getter.getReturnType();
                 Method setter = clazz.getMethod("set" + name, rettype);
@@ -234,13 +242,39 @@ public class JCRUtils {
         session.logout();
     }
 
-    private static void addTags() {
-        String line;
-        Set<String> tags = new HashSet();
-        while ((line = System.console().readLine()) != null) {
-            tags.add(line.trim());
-        }
+    private static void addTags(String repoDir, String repoXml, Set<String> tags) throws Exception {
+        MangaDAO dao = new MangaDAO(repoDir, repoXml);
+        System.out.print("username: ");
+        String username = System.console().readLine();
 
+        DAOSession session = dao.login(new MangaUser(username));
+
+        tags.addAll(session.getAllTags());
+
+        session.setTags(tags);
+        session.logout();
+    }
+
+    private static void resetTags(String repoDir, String repoXml) throws Exception {
+        MangaDAO dao = new MangaDAO(repoDir, repoXml);
+        System.out.print("username: ");
+        String username = System.console().readLine();
+
+        DAOSession session = dao.login(new MangaUser(username));
+
+        session.setTags(new HashSet());
+        session.logout();
+    }
+
+    private static void listTags(String repoDir, String repoXml) throws Exception {
+        MangaDAO dao = new MangaDAO(repoDir, repoXml);
+        System.out.print("username: ");
+        String username = System.console().readLine();
+
+        DAOSession session = dao.login(new MangaUser(username));
+
+        System.out.println(session.getAllTags());
+        session.logout();
     }
 
     private static void dumpManga(String repoDir, String repoXml, String title) throws Exception {
@@ -271,13 +305,16 @@ public class JCRUtils {
         session.logout();
     }
 
+    private static void printUsageAndExit() {
+        System.err.println("USAGE: JCRUtils <command>");
+        System.err.println("\tnew");
+        System.err.println("\tadd_manga <repo_dir> <repository.xml> [zip] - load manga from zip file(s), from stdin or command line");
+        System.exit(1);
+    }
+
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
-            System.err.println("USAGE: JCRUtils <command>");
-            System.err.println("\tnew");
-            System.err.println("\tadd_manga <repo_dir> <repository.xml> <zip>");
-            System.err.println("\tadd_doujin <repo_dir> <repository.xml> <zip>");
-            System.exit(1);
+            printUsageAndExit();
         }
 
         String cmd = args[0];
@@ -286,17 +323,66 @@ public class JCRUtils {
         if (cmd.equals("new")) {
             createNewRepo();
         } else if (cmd.equals("dump")) {
+            if (args.length != 2) {
+                printUsageAndExit();
+            }
             dump(args[0], args[1]);
         } else if (cmd.equals("add_manga")) {
-            add(args[0], args[1], "manga", args[2]);
-        } else if (cmd.equals("add_doujin")) {
-            add(args[0], args[1], "doujin", args[2]);
+            if (args.length > 2) {
+                for (int index = 2; index < args.length; index++) {
+                    add(args[0], args[1], "manga", args[index]);
+                }
+            } else if (args.length == 2) {
+                String line;
+                while ((line = System.console().readLine()) != null) {
+                    add(args[0], args[1], "manga", line);
+                }
+            } else {
+                printUsageAndExit();
+            }
         } else if (cmd.equals("dump_manga")) {
+            if (args.length != 3) {
+                printUsageAndExit();
+            }
             dumpManga(args[0], args[1], args[2]);
         } else if (cmd.equals("list")) {
+            if (args.length != 2) {
+                printUsageAndExit();
+            }
             listManga(args[0], args[1]);
+        } else if (cmd.equals("add_tags")) {
+            String line;
+            Set<String> tags = new HashSet();
+            BufferedReader reader = null;
+            if (args.length == 2) {
+                reader = new BufferedReader(System.console().reader());
+            } else if (args.length == 3) {
+                reader = new BufferedReader(new FileReader(args[2]));
+            } else {
+                printUsageAndExit();
+            }
+
+            while ((line = reader.readLine()) != null) {
+                tags.add(line.trim());
+            }
+
+            addTags(args[0], args[1], tags);
+
+        } else if (cmd.equals("reset_tags")) {
+            if (args.length != 2) {
+                printUsageAndExit();
+            }
+
+            resetTags(args[0], args[1]);
+        } else if (cmd.equals("list_tags")) {
+            if (args.length != 2) {
+                printUsageAndExit();
+            }
+
+            listTags(args[0], args[1]);
         } else {
             System.err.println("Unknown command '" + cmd + "'");
+            printUsageAndExit();
         }
     }
 }

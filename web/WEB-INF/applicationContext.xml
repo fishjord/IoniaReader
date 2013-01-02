@@ -27,7 +27,7 @@
           p:username="manga"
           p:password="manga" />-->
           
-    <bean id="mangaDAO" class="fishjord.mangareader.jcr.MangaDAO" destroy-method="close">
+    <bean id="mangaDAO" class="fishjord.ionia.jcr.MangaDAO" destroy-method="close">
         <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository</value></constructor-arg>
         <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository.xml</value></constructor-arg>
     </bean>

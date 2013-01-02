@@ -2,10 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.db;
+package fishjord.ionia.db;
 
 import java.util.Calendar;
 import java.util.Date;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  *
@@ -13,6 +14,7 @@ import java.util.Date;
  */
 public class Chapter {
     private String id;
+    @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)
     private Calendar uploadDate;
     private String chapterTitle;
     private Integer chapterNumber;

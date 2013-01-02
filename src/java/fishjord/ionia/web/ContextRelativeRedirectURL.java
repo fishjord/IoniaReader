@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.web;
+package fishjord.ionia.web;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,7 +22,7 @@ public class ContextRelativeRedirectURL {
             str.append(request.getPathInfo());
         }
         if (request.getQueryString() != null) {
-            str.append(request.getQueryString());
+            str.append("?").append(request.getQueryString());
         }
 
         url = str.toString();

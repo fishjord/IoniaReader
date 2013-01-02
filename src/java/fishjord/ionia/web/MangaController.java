@@ -2,23 +2,23 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.web;
+package fishjord.ionia.web;
 
-import fishjord.mangareader.db.Chapter;
-import fishjord.mangareader.db.Manga;
-import fishjord.mangareader.db.MangaUser;
-import fishjord.mangareader.jcr.MangaDAO;
-import fishjord.mangareader.jcr.MangaDAO.DAOSession;
+import fishjord.ionia.db.Chapter;
+import fishjord.ionia.db.Manga;
+import fishjord.ionia.db.MangaUser;
+import fishjord.ionia.jcr.MangaDAO;
+import fishjord.ionia.jcr.MangaDAO.DAOSession;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -28,72 +28,150 @@ import org.springframework.web.servlet.ModelAndView;
  */
 @Controller
 public class MangaController {
+
     @Autowired
     private MangaDAO dao;
-    
+
     private DAOSession getDAOSession(HttpSession session) {
-        DAOSession daoSession = null;
+        DAOSession daoSession;
         MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
-        if(user != null) {
+        if (user != null && user.getSession() != null) {
             daoSession = user.getSession();
         } else {
             daoSession = dao.getAnonSession();
         }
-        
-        return daoSession;        
+
+        return daoSession;
     }
-    
-    @RequestMapping(value="/list.spr")
+
+    @RequestMapping(value = "/list.spr")
     public ModelAndView listManga(HttpSession session) {
         DAOSession daoSession = getDAOSession(session);
-        
+
         List<Manga> mangaList = daoSession.listManga();
         ModelAndView mav = new ModelAndView("list");
         mav.addObject("mangaList", mangaList);
         return mav;
     }
-    
-    @RequestMapping(value="/summary.spr", params={"id"})
-    public ModelAndView showSummary(HttpSession session, @RequestParam("id")String id) {
+
+    @RequestMapping("/*")
+    public ModelAndView mangaSummary(HttpSession session, HttpServletRequest request, HttpServletResponse response) throws Exception {
         DAOSession daoSession = getDAOSession(session);
-        
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+
+        String[] lexemes = request.getPathInfo().substring(1).split("/");
+        String id = lexemes[0];
         Manga m = daoSession.getManga(id);
+
+        if (m == null) {
+            response.sendError(404);
+            return null;
+        }
+
+        if (m.isMature() && (user == null || !user.isMatureOk())) {
+            ContextRelativeRedirectURL redirect = new ContextRelativeRedirectURL(request);
+            SingleObjectSessionUtils.addToSession(session, redirect);
+            return new ModelAndView("redirect:/mature_warning.spr");
+        }
+
         ModelAndView mav = new ModelAndView("summary");
         mav.addObject("manga", m);
         return mav;
     }
-    
-    @RequestMapping(value="/read.spr", params={"id", "chap"})
-    public ModelAndView showSummary(HttpSession session, @RequestParam("id")String id, @RequestParam("chap")String chap) {
+
+    @RequestMapping("/*/*")
+    public ModelAndView readChapter(HttpSession session, HttpServletRequest request, HttpServletResponse response) throws Exception {
         DAOSession daoSession = getDAOSession(session);
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+
+        String[] lexemes = request.getPathInfo().substring(1).split("/");
+
+        String id = lexemes[0];
+        String chap = lexemes[1];
         Manga m = daoSession.getManga(id);
+        if (m == null) {
+            response.sendError(404);
+            return null;
+        }
+
+        if (m.isMature() && (user == null || !user.isMatureOk())) {
+            ContextRelativeRedirectURL redirect = new ContextRelativeRedirectURL(request);
+            SingleObjectSessionUtils.addToSession(session, redirect);
+            return new ModelAndView("redirect:/mature_warning.spr");
+        }
+
         Chapter c = null;
         String nextChapter = null;
-        
-        for(int index = 0;index < m.getChapters().size();index++) {
-            if(m.getChapters().get(index).getId().equals(chap)) {
+
+        for (int index = 0; index < m.getChapters().size(); index++) {
+            if (m.getChapters().get(index).getId().equals(chap)) {
                 c = m.getChapters().get(index);
-                if(index < m.getChapters().size() - 1) {
+                if (index < m.getChapters().size() - 1) {
                     nextChapter = m.getChapters().get(index + 1).getId();
                 }
             }
         }
-        
-        int numPages = daoSession.getPageCount(id, chap);
-        c.setNumPages(numPages);
-        
+
         ModelAndView mav = new ModelAndView("read");
         mav.addObject("manga", m);
         mav.addObject("chapter", c);
         mav.addObject("nextChapter", nextChapter);
-                
+
         return mav;
     }
-    
-    @RequestMapping(value="/page.spr", params={"id", "chap", "page"})
-    public void showPage(HttpServletRequest request, HttpServletResponse response, @RequestParam("id")String id, @RequestParam("chap")String chap, @RequestParam("page")Integer page) throws IOException {
-        DAOSession session = getDAOSession(request.getSession());
-        
-        session.copyPageToStream(id, chap, page, response.getOutputStream());
+
+    @RequestMapping("/*/*/*")
+    public ModelAndView getChapterPage(HttpSession session, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        DAOSession daoSession = getDAOSession(session);
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+
+        String[] lexemes = request.getPathInfo().substring(1).split("/");
+
+        String id = lexemes[0];
+        String chap = lexemes[1];
+        if (user == null || !user.isMatureOk()) {
+            Manga m = daoSession.getManga(id);
+            if (m.isMature()) {
+                ContextRelativeRedirectURL redirect = new ContextRelativeRedirectURL(request);
+                SingleObjectSessionUtils.addToSession(session, redirect);
+                return new ModelAndView("redirect:/mature_warning.spr");
+            }
+        }
+        try {
+            Integer page = Integer.valueOf(lexemes[2]);
+            if (daoSession.copyPageToStream(id, chap, page, response.getOutputStream())) {
+                return null;
+            }
+
+        } catch (NumberFormatException e) {
+        }
+
+        response.sendError(404);
+        return null;
+    }
+
+    @RequestMapping(value = "/mature_warning.spr", method = RequestMethod.GET)
+    public ModelAndView showMatureWarning() {
+        return new ModelAndView("warning");
+    }
+
+    @RequestMapping(value = "/mature_warning.spr", method = RequestMethod.GET, params = {"ok"})
+    public ModelAndView matureOk(HttpSession session, HttpServletResponse response, @RequestParam("ok") boolean ok) throws IOException {
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+        if (user == null) {
+            user = new MangaUser(session.getId());
+            SingleObjectSessionUtils.addToSession(session, user);
+        }
+
+        user.setMatureOk(ok);
+        if (ok) {
+            ContextRelativeRedirectURL url = SingleObjectSessionUtils.getFromSession(session, ContextRelativeRedirectURL.class);
+            if (url != null) {
+                SingleObjectSessionUtils.removeFromSession(session, url);
+                response.sendRedirect(url.getRedirectUrl());
+                return null;
+            }
+        }
+        return new ModelAndView("redirect:/");
     }
 }

@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.upload;
+package fishjord.ionia.upload;
 
-import fishjord.mangareader.db.Chapter;
-import fishjord.mangareader.db.Manga;
+import fishjord.ionia.db.Chapter;
+import fishjord.ionia.db.Manga;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,6 +65,7 @@ public class UploadUtils {
         StringBuilder title = new StringBuilder();
         String scanlationGroup = null;
         String[] tokens = archiveName.split("[_|\\s]+");
+        
         title.append(tokens[0]);
 
         for (int index = 1; index < tokens.length; index++) {

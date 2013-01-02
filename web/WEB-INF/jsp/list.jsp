@@ -15,7 +15,7 @@
         <tr></tr>
         <c:forEach var="manga" items="${mangaList}">
             <tr>
-                <td class="manga-field"><a href="summary.spr?id=${manga.id}">${manga.title}</a><td/>
+                <td class="manga-field"><a href="<c:url value="/manga/${manga.id}" />">${manga.title}</a><td/>
                 <td>${manga.author}</td>
                 <td>${manga.artist}</td>
                 <td>${manga.publisher}</td>

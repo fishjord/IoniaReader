@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.db;
+package fishjord.ionia.db;
 
-import fishjord.mangareader.jcr.MangaDAO.DAOSession;
+import fishjord.ionia.jcr.MangaDAO.DAOSession;
 import java.util.Date;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,17 +22,26 @@ public class MangaUser {
     private String displayName;
     private Date joinedAt;
     private DAOSession session;
+    private boolean anonymous;
+    private boolean matureOk;
     
     public MangaUser(String username) {
-        this(username, username, new Date(), new HashSet(), null);
+        this(null, username,null, new HashSet(), null);
+        this.anonymous = true;
+        this.matureOk = false;
     }
     
-    MangaUser(String username, String displayName, Date joinedAt, Set<MangaUserRole> roles, DAOSession session) {
+    public MangaUser(String username, String displayName, Date joinedAt, Set<MangaUserRole> roles, DAOSession session) {
         this.username = this.email = username;
         this.roles = Collections.unmodifiableSet(roles);
         this.displayName = displayName;
         this.joinedAt = joinedAt;
         this.session = session;
+        this.anonymous = username == null;     
+    }
+    
+    public boolean isAnonymous() {
+        return anonymous;
     }
 
     public boolean isUserInRole(MangaUserRole role) {
@@ -57,5 +66,13 @@ public class MangaUser {
 
     public DAOSession getSession() {
         return session;
+    }
+
+    public void setMatureOk(boolean matureOk) {
+        this.matureOk = matureOk;
+    }
+
+    public boolean isMatureOk() {
+        return matureOk;
     }
 }

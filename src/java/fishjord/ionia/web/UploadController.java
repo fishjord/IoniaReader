@@ -2,16 +2,22 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.web;
+package fishjord.ionia.web;
 
-import fishjord.mangareader.db.Manga;
-import fishjord.mangareader.db.MangaReaderDB;
-import fishjord.mangareader.db.MangaUser;
-import fishjord.mangareader.upload.Upload;
-import fishjord.mangareader.upload.UploadBackgroundTask;
-import fishjord.mangareader.upload.UploadStatus;
+import fishjord.ionia.db.Manga;
+import fishjord.ionia.db.MangaUser;
+import fishjord.ionia.jcr.MangaDAO;
+import fishjord.ionia.upload.Upload;
+import fishjord.ionia.upload.UploadBackgroundTask;
+import fishjord.ionia.upload.UploadStatus;
+import java.beans.PropertyEditorSupport;
+import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.zip.ZipInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -26,11 +32,13 @@ import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -42,14 +50,51 @@ public class UploadController {
 
     @Autowired
     private ThreadPoolTaskExecutor threadpool;
-    
-    private MangaReaderDB mangaDb;
+    @Autowired
+    private MangaDAO dao;
+
+    private static class CustomCalendarEditor extends PropertyEditorSupport {
+        private DateFormat format;
+        
+        public CustomCalendarEditor(DateFormat format) {
+            this.format = format;
+        }
+        
+        @Override
+        public void setAsText(String text) throws IllegalArgumentException {
+            if(!StringUtils.hasText(text)) {
+                super.setValue(null);
+                return;
+            }
+            
+            try {
+                Date d = format.parse(text);
+                Calendar c = new GregorianCalendar();
+                c.setTime(d);
+                super.setValue(c);
+            } catch(Exception e) {
+                throw new IllegalArgumentException("Failed to parse date '" + text + "'", e);
+            }
+        }
+        
+        @Override
+        public String getAsText() {
+            Calendar c = (Calendar)super.getValue();
+            if(c == null) {
+                return "";
+            }
+            
+            return format.format(c.getTime());
+        }
+    }
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         StringTrimmerEditor editor = new StringTrimmerEditor(true);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
         binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
+        binder.registerCustomEditor(Calendar.class, new CustomCalendarEditor(dateFormat));
         binder.registerCustomEditor(String.class, editor);
     }
 
@@ -94,7 +139,7 @@ public class UploadController {
         ZipInputStream zip;
         try {
             zip = new ZipInputStream(item.getInputStream());
-            UploadBackgroundTask task = new UploadBackgroundTask(mangaDb, user, item.getName(), zip);
+            UploadBackgroundTask task = null;// new UploadBackgroundTask(mangaDb, user, item.getName(), zip);
             SingleObjectSessionUtils.addToSession(session, task);
             threadpool.submit(task);
 
@@ -127,6 +172,27 @@ public class UploadController {
         return mav;
     }
 
+    @RequestMapping(value = "/admin/edit_manga.spr", params = {"id"}, method = RequestMethod.GET)
+    public ModelAndView editManga(HttpSession session, HttpServletResponse response, @RequestParam("id") String id) throws IOException {
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+        Manga manga = user.getSession().getManga(id);
+
+        if (manga == null) {
+            response.sendError(404);
+            return null;
+        }
+
+        Upload upload = new Upload(manga, new ArrayList());
+
+        SingleObjectSessionUtils.addToSession(session, upload);
+
+        ModelAndView mav = new ModelAndView("edit_manga");
+        mav.addObject("manga", upload.getManga());
+        mav.addObject("newChapters", upload.getNewChapters());
+        mav.addObject("allTags", dao.getAnonSession().getAllTags());
+        return mav;
+    }
+
     @RequestMapping(value = "/admin/edit_manga.spr", method = RequestMethod.GET)
     public ModelAndView getFinalizeUploadView(HttpSession session) {
         Upload upload = SingleObjectSessionUtils.getFromSession(session, Upload.class);
@@ -138,7 +204,7 @@ public class UploadController {
         ModelAndView mav = new ModelAndView("edit_manga");
         mav.addObject("manga", upload.getManga());
         mav.addObject("newChapters", upload.getNewChapters());
-        //mav.addObject("allTags", mangaDb.getTagList());
+        mav.addObject("allTags", dao.getAnonSession().getAllTags());
         return mav;
     }
 
@@ -150,14 +216,11 @@ public class UploadController {
             return new ModelAndView("redirect:upload.spr");
         }
 
-        if(upload.getManga().getId() != manga.getId()) {
-            throw new IllegalStateException("Manga ID has been changed, can't commit changes");
-        }
-
-        //mangaDb.updateManga(manga, upload.getNewChapters());
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+        user.getSession().persist(new Upload(manga, upload.getNewChapters()));
         SingleObjectSessionUtils.removeFromSession(session, upload);
 
-        return new ModelAndView("redirect:/summary.spr?id=" + manga.getId());
+        return new ModelAndView("redirect:/manga/" + manga.getId());
     }
 
     @RequestMapping(value = "/admin/cancel_upload.spr")

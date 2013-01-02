@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.upload;
+package fishjord.ionia.upload;
 
-import fishjord.mangareader.db.Chapter;
-import fishjord.mangareader.db.Manga;
-import fishjord.mangareader.db.MangaReaderDB;
-import fishjord.mangareader.db.MangaUser;
+import fishjord.ionia.db.Chapter;
+import fishjord.ionia.db.Manga;
+import fishjord.ionia.db.MangaReaderDB;
+import fishjord.ionia.db.MangaUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

@@ -2,11 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.web.login;
+package fishjord.ionia.web.login;
 
-import fishjord.mangareader.db.MangaUser;
-import fishjord.mangareader.web.ContextRelativeRedirectURL;
-import fishjord.mangareader.web.SingleObjectSessionUtils;
+import fishjord.ionia.db.MangaUser;
+import fishjord.ionia.web.ContextRelativeRedirectURL;
+import fishjord.ionia.web.SingleObjectSessionUtils;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -31,11 +31,10 @@ public class LoginFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest)sr;
         HttpServletResponse response = (HttpServletResponse)sr1;
         HttpSession session = request.getSession();
+                
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
         
-        System.err.println("Request for protected resource " + request.getRequestURL().toString());
-        
-        if(!SingleObjectSessionUtils.isInSession(session, MangaUser.class)) {
-            System.err.println("No user in session, redirecting to login page");
+        if(user == null || user.isAnonymous()) {
             SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
             response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/login.spr"));
         } else {

@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.db;
+package fishjord.ionia.db;
 
-import fishjord.mangareader.db.MangaUser.MangaUserRole;
+import fishjord.ionia.db.MangaUser.MangaUserRole;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

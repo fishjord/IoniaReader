@@ -2,13 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.web.login;
+package fishjord.ionia.web.login;
 
-import fishjord.mangareader.db.MangaReaderDB;
-import fishjord.mangareader.db.MangaUser;
-import fishjord.mangareader.web.ContextRelativeRedirectURL;
-import fishjord.mangareader.web.SingleObjectSessionUtils;
+import fishjord.ionia.db.MangaUser;
+import fishjord.ionia.db.MangaUser.MangaUserRole;
+import fishjord.ionia.jcr.MangaDAO;
+import fishjord.ionia.jcr.MangaDAO.DAOSession;
+import fishjord.ionia.web.ContextRelativeRedirectURL;
+import fishjord.ionia.web.SingleObjectSessionUtils;
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -22,20 +26,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 public class LoginController {
-    
-    
-    private MangaReaderDB mangaDb;
+    @Autowired
+    private MangaDAO dao;
+    //private MangaReaderDB mangaDb;
     
     @RequestMapping("/login.spr")
     public void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
-        MangaUser user = mangaDb.getMangaUser(request.getUserPrincipal().getName());
+        //MangaUser user = mangaDb.getMangaUser(request.getUserPrincipal().getName());
+        MangaUser user = new MangaUser(request.getUserPrincipal().getName(), request.getUserPrincipal().getName(), new Date(), new HashSet(), dao.login(request.getUserPrincipal().getName()));
         SingleObjectSessionUtils.addToSession(session, user);
         
         ContextRelativeRedirectURL url = SingleObjectSessionUtils.getFromSession(session, ContextRelativeRedirectURL.class);
-        
-        System.err.println("User " + user.getDisplayName() + " logged in, redirecting to " + url);
-        
+                
         if(url != null) {
             response.sendRedirect(response.encodeRedirectURL(url.getRedirectUrl()));
         } else {

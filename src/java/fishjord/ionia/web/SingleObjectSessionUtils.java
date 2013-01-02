@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.web;
+package fishjord.ionia.web;
 
 import javax.servlet.http.HttpSession;
 

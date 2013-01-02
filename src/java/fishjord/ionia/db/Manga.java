@@ -2,12 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package fishjord.mangareader.db;
+package fishjord.ionia.db;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 
 /**
  *
@@ -22,22 +25,23 @@ public class Manga {
     private String circle;
     private String scanGroup;
     private String description;
+    @DateTimeFormat(iso=ISO.DATE)
     private Calendar publishedDate;
+    @DateTimeFormat(iso=ISO.DATE_TIME)
     private Calendar uploadedDate;
+    @DateTimeFormat(iso=ISO.DATE_TIME)
     private Calendar updatedDate;
-    private boolean complete;
-    private boolean mature;
     private String uploadedBy;
     
     private List<Chapter> chapters;
-    private List<String> tags;
+    private Set<String> tags;
     
     public Manga() {
         chapters = new ArrayList();
-        tags = new ArrayList();
+        tags = new HashSet();
     }
 
-    Manga(String id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Calendar publishedDate, Calendar uploadedDate, Calendar updatedDate, String uploadedBy, boolean complete, boolean mature, List<Chapter> chapters, List<String> tags) {
+    Manga(String id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Calendar publishedDate, Calendar uploadedDate, Calendar updatedDate, String uploadedBy, List<Chapter> chapters, Set<String> tags) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -49,8 +53,6 @@ public class Manga {
         this.publishedDate = publishedDate;
         this.uploadedDate = uploadedDate;
         this.updatedDate = updatedDate;
-        this.complete = complete;
-        this.mature = mature;
         this.uploadedBy = uploadedBy;
         this.chapters = chapters;
         this.tags = tags;
@@ -101,18 +103,18 @@ public class Manga {
     }
 
     public boolean isComplete() {
-        return complete;
+        return tags.contains("complete");
     }
 
     public boolean isMature() {
-        return mature;
+        return tags.contains("mature");
     }
 
     public List<Chapter> getChapters() {
         return chapters;
     }
 
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
     
@@ -152,19 +154,11 @@ public class Manga {
         this.publishedDate = publishedDate;
     }
 
-    public void setComplete(boolean complete) {
-        this.complete = complete;
-    }
-
-    public void setMature(boolean mature) {
-        this.mature = mature;
-    }
-
     public void setChapters(List<Chapter> chapters) {
         this.chapters = chapters;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 
@@ -186,6 +180,6 @@ public class Manga {
 
     @Override
     public String toString() {
-        return "Manga{" + "id=" + id + ", title=" + title + ", author=" + author + ", artist=" + artist + ", publisher=" + publisher + ", circle=" + circle + ", scanGroup=" + scanGroup + ", description=" + description + ", publishedDate=" + publishedDate + ", uploadedDate=" + uploadedDate + ", updatedDate=" + updatedDate + ", complete=" + complete + ", mature=" + mature + ", uploadedBy=" + uploadedBy + ", chapters=" + chapters + ", tags=" + tags + '}';
+        return "Manga{" + "id=" + id + ", title=" + title + ", author=" + author + ", artist=" + artist + ", publisher=" + publisher + ", circle=" + circle + ", scanGroup=" + scanGroup + ", description=" + description + ", publishedDate=" + publishedDate + ", uploadedDate=" + uploadedDate + ", updatedDate=" + updatedDate + ", uploadedBy=" + uploadedBy + ", chapters=" + chapters + ", tags=" + tags + '}';
     }
 }

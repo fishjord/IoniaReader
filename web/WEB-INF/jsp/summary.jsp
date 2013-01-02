@@ -30,7 +30,7 @@
                 </tr>
         <c:forEach var="chapter" varStatus="status" items="${manga.chapters}">
             <tr>
-                <td><a href="read.spr?id=${manga.id}&chap=${chapter.id}">${chapter.chapterTitle}</a></td>
+                <td><a href="<c:url value="/manga/${manga.id}/${chapter.id}/" />">${chapter.chapterTitle}</a></td>
                 <td>${chapter.numPages}</td>
                 <td><c:if test="${chapter.uploadDate != null}"><fmt:formatDate value="${chapter.uploadDate.time}" /></c:if></td>
             </tr>

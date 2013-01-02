@@ -19,7 +19,7 @@
     </listener>
     
     <filter>
-        <filter-class>fishjord.mangareader.web.login.LoginFilter</filter-class>
+        <filter-class>fishjord.ionia.web.login.LoginFilter</filter-class>
         <filter-name>login_filter</filter-name>
     </filter>
     
@@ -37,6 +37,7 @@
     <servlet-mapping>
         <servlet-name>dispatcher</servlet-name>
         <url-pattern>*.spr</url-pattern>
+        <url-pattern>/manga/*</url-pattern>
     </servlet-mapping>
     
     <security-constraint> 
