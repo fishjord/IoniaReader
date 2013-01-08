@@ -54,36 +54,37 @@ public class UploadController {
     private MangaDAO dao;
 
     private static class CustomCalendarEditor extends PropertyEditorSupport {
+
         private DateFormat format;
-        
+
         public CustomCalendarEditor(DateFormat format) {
             this.format = format;
         }
-        
+
         @Override
         public void setAsText(String text) throws IllegalArgumentException {
-            if(!StringUtils.hasText(text)) {
+            if (!StringUtils.hasText(text)) {
                 super.setValue(null);
                 return;
             }
-            
+
             try {
                 Date d = format.parse(text);
                 Calendar c = new GregorianCalendar();
                 c.setTime(d);
                 super.setValue(c);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new IllegalArgumentException("Failed to parse date '" + text + "'", e);
             }
         }
-        
+
         @Override
         public String getAsText() {
-            Calendar c = (Calendar)super.getValue();
-            if(c == null) {
+            Calendar c = (Calendar) super.getValue();
+            if (c == null) {
                 return "";
             }
-            
+
             return format.format(c.getTime());
         }
     }
@@ -139,7 +140,7 @@ public class UploadController {
         ZipInputStream zip;
         try {
             zip = new ZipInputStream(item.getInputStream());
-            UploadBackgroundTask task = null;// new UploadBackgroundTask(mangaDb, user, item.getName(), zip);
+            UploadBackgroundTask task = new UploadBackgroundTask(user, item.getName(), zip);
             SingleObjectSessionUtils.addToSession(session, task);
             threadpool.submit(task);
 
@@ -159,10 +160,13 @@ public class UploadController {
         if (task == null) {
             return new ModelAndView("redirect:upload.spr");
         }
-
+ 
         if (task.getStatus() == UploadStatus.Complete) {
             SingleObjectSessionUtils.removeFromSession(session, task);
             SingleObjectSessionUtils.addToSession(session, task.getResult());
+
+            MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+            user.getSession().persist(task.getResult());
             return new ModelAndView("redirect:edit_manga.spr");
         }
 
@@ -170,6 +174,22 @@ public class UploadController {
         mav.addObject("uploadTask", task);
         mav.addObject("refresh", task.getStatus() != UploadStatus.Error);
         return mav;
+    }
+
+    @RequestMapping(value = "/admin/delete_manga.spr", method = RequestMethod.GET, params = {"id"})
+    public ModelAndView deleteManga(HttpSession session, @RequestParam("id") String mangaId) {
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+        user.getSession().deleteManga(mangaId);
+
+        return new ModelAndView("redirect:/admin/edit_manga.spr?id=" + mangaId);
+    }
+
+    @RequestMapping(value = "/admin/delete_chapter.spr", method = RequestMethod.GET, params = {"manga_id", "chap_id"})
+    public ModelAndView deleteChapter(HttpSession session, @RequestParam("manga_id") String mangaId, @RequestParam("chap_id") String chapId) {
+        MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
+        user.getSession().deleteChapter(mangaId, chapId);
+
+        return new ModelAndView("redirect:/admin/edit_manga.spr?id=" + mangaId);
     }
 
     @RequestMapping(value = "/admin/edit_manga.spr", params = {"id"}, method = RequestMethod.GET)

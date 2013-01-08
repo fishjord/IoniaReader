@@ -5,7 +5,7 @@
 package fishjord.ionia.db;
 
 import java.util.Calendar;
-import java.util.Date;
+import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
@@ -18,17 +18,17 @@ public class Chapter {
     private Calendar uploadDate;
     private String chapterTitle;
     private Integer chapterNumber;
-    private int numPages;
+    
+    private List<Page> pages;
     
     public Chapter() {
     }
     
-    public Chapter(String id, String chapterTitle, Integer chapterNumber, int numPages, Calendar uploadDate) {
+    public Chapter(String id, String chapterTitle, Integer chapterNumber, Calendar uploadDate) {
         this.id = id;
         this.uploadDate = uploadDate;
         this.chapterTitle = chapterTitle;
         this.chapterNumber = chapterNumber;
-        this.numPages = numPages;
     }
 
     public String getId() {
@@ -63,16 +63,16 @@ public class Chapter {
         this.chapterNumber = chapterNumber;
     }
 
-    public int getNumPages() {
-        return numPages;
+    public List<Page> getPages() {
+        return pages;
     }
 
-    public void setNumPages(int numPages) {
-        this.numPages = numPages;
+    public void setPages(List<Page> pages) {
+        this.pages = pages;
     }
 
     @Override
     public String toString() {
-        return "Chapter{" + "id=" + id + ", uploadDate=" + uploadDate + ", chapterTitle=" + chapterTitle + ", chapterNumber=" + chapterNumber + ", numPages=" + numPages + '}';
+        return "Chapter{" + "id=" + id + ", uploadDate=" + uploadDate + ", chapterTitle=" + chapterTitle + ", chapterNumber=" + chapterNumber + ", pages=" + pages + '}';
     }
 }

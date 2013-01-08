@@ -10,10 +10,13 @@ import fishjord.ionia.jcr.MangaDAO.DAOSession;
 import fishjord.ionia.upload.Upload;
 import fishjord.ionia.upload.UploadUtils;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -229,16 +232,24 @@ public class JCRUtils {
         }
     }
 
-    public static void add(String repoDir, String repoXml, String type, String zip) throws Exception {
+    public static void add(String repoDir, String repoXml, String type, List<String> zips) throws Exception {
         MangaDAO dao = new MangaDAO(repoDir, repoXml);
 
-        System.out.print("username: ");
-        String username = System.console().readLine();
+        //System.out.print("username: ");
+        //String username = System.console().readLine();
+	String username = "";
 
         DAOSession session = dao.login(new MangaUser(username));
 
-        Upload upload = UploadUtils.fromZip(new File(zip));
-        session.persist(upload);
+	for(String zip : zips) {
+	    try {
+		Upload upload = UploadUtils.fromZip(new File(zip));
+		session.persist(upload);
+		System.err.println("Added " + zip + " successfully");
+	    } catch(Exception e) {
+		System.err.println("Failed to persist " + zip + ": " + e.getMessage());
+	    }
+	}
         session.logout();
     }
 
@@ -280,8 +291,9 @@ public class JCRUtils {
     private static void dumpManga(String repoDir, String repoXml, String title) throws Exception {
         MangaDAO dao = new MangaDAO(repoDir, repoXml);
 
-        System.out.print("username: ");
-        String username = System.console().readLine();
+        //System.out.print("username: ");
+        //String username = System.console().readLine();
+	String username = "";
 
         DAOSession session = dao.login(new MangaUser(username));
         Manga m = session.getManga(title);
@@ -328,18 +340,22 @@ public class JCRUtils {
             }
             dump(args[0], args[1]);
         } else if (cmd.equals("add_manga")) {
+	    List<String> toAdd = new ArrayList();
             if (args.length > 2) {
                 for (int index = 2; index < args.length; index++) {
-                    add(args[0], args[1], "manga", args[index]);
+		    toAdd.add(args[index]);
                 }
             } else if (args.length == 2) {
                 String line;
-                while ((line = System.console().readLine()) != null) {
-                    add(args[0], args[1], "manga", line);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                while ((line = reader.readLine()) != null) {
+                    toAdd.add(line);
                 }
             } else {
                 printUsageAndExit();
             }
+	    System.err.println("Adding " + toAdd.size() + " manga");
+	    add(args[0], args[1], "manga", toAdd);
         } else if (cmd.equals("dump_manga")) {
             if (args.length != 3) {
                 printUsageAndExit();

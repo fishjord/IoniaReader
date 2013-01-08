@@ -31,7 +31,7 @@ public class UploadBackgroundTask implements Runnable {
 
     private Upload result;
 
-    public UploadBackgroundTask(MangaReaderDB db, MangaUser uploader, String archiveName, ZipInputStream uploadedArchive) {
+    public UploadBackgroundTask(MangaUser uploader, String archiveName, ZipInputStream uploadedArchive) {
         this.db = db;
         this.uploadedArchive = uploadedArchive;
         this.archiveName = archiveName;
@@ -50,31 +50,10 @@ public class UploadBackgroundTask implements Runnable {
         try {
             this.status = UploadStatus.Processing;
             addMessage("Processing uploaded archive " + archiveName);
-
-            Manga manga = UploadUtils.guessInfoFromArchiveName(archiveName);
-
-            List<UploadedChapter> uploadedChapters = UploadUtils.processZipArchive(null, uploadedArchive);
-            Map<Integer, UploadedChapter> newChapters = new HashMap();
-
-            int chapCount = manga.getChapters().size();
-            UploadedChapter uploadedChapter;
-            for (int index = 0; index < uploadedChapters.size(); index++) {
-                int chapNum = index + chapCount + 1;
-                uploadedChapter = uploadedChapters.get(index);
-
-                addMessage("Creating chapter " + chapNum);
-                String titleGuess = uploadedChapter.titleGuess;
-                if(titleGuess == null) {
-                    titleGuess = "Chapter " + chapNum;
-                }
-
-                Chapter c = new Chapter(titleGuess.toLowerCase().replace(" ", "_"), titleGuess, chapNum, uploadedChapter.pages.size(), null);
-                newChapters.put(chapNum, uploadedChapter);
-
-                manga.getChapters().add(c);
-            }
+            
+            result = UploadUtils.fromZip(archiveName, uploadedArchive);
+            
             this.status = UploadStatus.Complete;
-            result = new Upload(manga, uploadedChapters);
         } catch (Exception e) {
             this.status = UploadStatus.Error;
             addMessage("Error processing upload: " + e.getMessage());

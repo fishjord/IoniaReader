@@ -16,7 +16,7 @@
     <body>
         <div class="container">
             <div class="header">
-                <h1 class="banner" style="font-style: italic">Ionia Reader</h1>
+                <a href="<c:url value="/" />" style="{}"><h1 class="banner" style="font-style: italic">Ionia Reader</h1></a>
             </div>
             <div class="content">
               <jsp:doBody/>                

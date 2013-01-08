@@ -137,13 +137,10 @@ public class MangaController {
                 return new ModelAndView("redirect:/mature_warning.spr");
             }
         }
-        try {
-            Integer page = Integer.valueOf(lexemes[2]);
-            if (daoSession.copyPageToStream(id, chap, page, response.getOutputStream())) {
-                return null;
-            }
-
-        } catch (NumberFormatException e) {
+        
+        String page = lexemes[2];
+        if (daoSession.copyPageToStream(id, chap, page, response.getOutputStream())) {
+            return null;
         }
 
         response.sendError(404);

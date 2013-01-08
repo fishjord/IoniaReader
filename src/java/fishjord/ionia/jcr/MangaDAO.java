@@ -7,6 +7,7 @@ package fishjord.ionia.jcr;
 import fishjord.ionia.db.Chapter;
 import fishjord.ionia.db.Manga;
 import fishjord.ionia.db.MangaUser;
+import fishjord.ionia.db.Page;
 import fishjord.ionia.upload.Upload;
 import fishjord.ionia.upload.UploadedChapter;
 import fishjord.ionia.upload.UploadedPage;
@@ -72,7 +73,7 @@ public class MangaDAO {
         } catch (Exception e) {
             log.log(Level.SEVERE, "Failed to log user in", e);
             return null;
-        }        
+        }
     }
 
     public DAOSession login(MangaUser user) {
@@ -108,12 +109,10 @@ public class MangaDAO {
             lock.lock();
             try {
                 for (UploadedChapter uploadedChapter : upload.getNewChapters()) {
-                    System.out.println("Persisting uploaded chapter " + uploadedChapter.getId());
-                    Node chapterNode = session.getNode("/manga/" + upload.getManga().getId() + "/chapters/" + uploadedChapter.getId());
+                    Node chapterNode = session.getNode("/manga/" + upload.getManga().getId() + "/chapters/" + uploadedChapter.getTitleGuess().getId());
                     Node addTo = chapterNode.getNode("pages");
                     for (UploadedPage page : uploadedChapter.getPages()) {
-                        System.out.println("persisting " + page.getUploadedFileName());
-                        JcrUtils.putFile(addTo, page.getUploadedFileName(), page.getUploadedFileType(), new ByteArrayInputStream(page.getImage()));
+                        JcrUtils.putFile(addTo, page.getTitle().getId(), page.getUploadedFileType(), new ByteArrayInputStream(page.getImage()));
                     }
                 }
 
@@ -129,7 +128,7 @@ public class MangaDAO {
             lock.lock();
             try {
                 ;
-                
+
                 Node mangaNode;
                 if (!session.nodeExists("/manga/" + manga.getId())) {
                     manga.setUploadedDate(new GregorianCalendar());
@@ -155,7 +154,7 @@ public class MangaDAO {
 
                     JCRUtils.setProperties(addTo, chap);
                 }
-                
+
                 this.setMultivalue(mangaNode, "tags", manga.getTags());
 
                 session.save();
@@ -224,6 +223,44 @@ public class MangaDAO {
 
         }
 
+        public boolean deleteManga(String id) {
+            lock.lock();
+
+            try {
+                Node readFrom = session.getNode("/manga/" + id);
+                readFrom.remove();
+                session.save();
+                return true;
+            } catch (PathNotFoundException e) {
+            } catch (Exception e) {
+                log.log(Level.SEVERE, "Exception deleting manga " + id, e);
+            } finally {
+                lock.unlock();
+            }
+            
+            
+            return false;
+        }
+
+        public boolean deleteChapter(String mangaId, String chapId) {
+            lock.lock();
+
+            try {
+                Node readFrom = session.getNode("/manga/" + mangaId + "/chapters/" + chapId);
+                readFrom.remove();
+                session.save();
+                return true;
+            } catch (PathNotFoundException e) {
+            } catch (Exception e) {
+                log.log(Level.SEVERE, "Exception deleting chapter " + mangaId + ", " + chapId, e);
+            } finally {
+                lock.unlock();
+            }
+            
+            
+            return false;
+        }
+
         private Manga getManga(Node readFrom) throws Exception {
             Manga ret = new Manga();
             JCRUtils.getProperties(readFrom, ret);
@@ -232,7 +269,13 @@ public class MangaDAO {
             for (Node chapNode : JcrUtils.getChildNodes(readFrom.getNode("chapters"))) {
                 Chapter chapter = new Chapter();
                 JCRUtils.getProperties(chapNode, chapter);
-                chapter.setNumPages(countChildren(chapNode.getNode("pages")));
+                
+                List<Page> pages = new ArrayList();
+                for (Node pageNode : JcrUtils.getChildNodes(chapNode.getNode("pages"))) {
+                    pages.add(new Page(pageNode.getName()));
+                }
+                chapter.setPages(pages);
+                
                 chapters.add(chapter);
             }
 
@@ -242,18 +285,12 @@ public class MangaDAO {
             return ret;
         }
 
-        public boolean copyPageToStream(String manga, String chapter, int page, OutputStream os) {
+        public boolean copyPageToStream(String manga, String chapter, String page, OutputStream os) {
             lock.lock();
 
             try {
-                Node n = session.getNode("/manga/" + manga + "/chapters/" + chapter + "/pages");
-
-                NodeIterator iter = n.getNodes();
-                for (int index = 0; index < page; index++) {
-                    iter.nextNode();
-                }
-
-                n = iter.nextNode();
+                Node n = session.getNode("/manga/" + manga + "/chapters/" + chapter + "/pages/" + page);
+                
                 if (n != null) {
                     n = n.getNode("jcr:content");
                     Binary data = n.getProperty("jcr:data").getBinary();

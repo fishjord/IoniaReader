@@ -4,6 +4,7 @@
     Author     : fishjord
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -11,7 +12,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Finish Upload</title>
+        <title>Edit Manga</title>
     </head>
     <body>
         <form:form action="edit_manga.spr" commandName="manga" method="POST" autocomplete="false">
@@ -41,29 +42,24 @@
                 <br/>
                 <table>
                     <tr>
-                    <%--<th>Delete</th>--%><th>Chapter Id</th><th>Chapter Number</th><th>Chapter Title</th><th>Title Page</th><th>Number of Pages</th><th>Uploaded On</th>
+                    <th>Delete</th><th>Chapter Id</th><th>Chapter Number</th><th>Chapter Title</th<th>Number of Pages</th><th>Uploaded On</th>
                 </tr>
                 <c:forEach var="chapter" varStatus="status" items="${manga.chapters}">
                     <tr>
-                        <%--<td><a href="delete_chapter.spr?manga_id=${manga.id}&chap_idx=${status.index}" onclick="return confirm('Really delete chapter \'${chapter.chapterTitle}\'? (Delete will be finalized after saving)');" >delete</a></td>--%>
+                        <td><a href="delete_chapter.spr?manga_id=${manga.id}&chap_id=${chapter.id}" onclick="return confirm('Really delete chapter \'${chapter.chapterTitle}\'? (All unsaved changes will be lost)');" >delete</a></td>
                         <td><form:input disabled="true" path="chapters[${status.index}].id" /></td>
                         <td><form:input path="chapters[${status.index}].chapterNumber" /></td>
-                        <td><form:input disabled="true" path="chapters[${status.index}].uploadDate" /></td>
+                        <td>${fn:length(chapter.pages)}</td>
+                        <td><form:input disabled="true" path="chapters[${status.index}].id" /></td>
+                        <td><form:input path="chapters[${status.index}].chapterTitle" /></td>
                         <form:hidden path="chapters[${status.index}].id" />
                         <form:hidden path="chapters[${status.index}].uploadDate" />
-                    </tr><%--
-                    <c:if test="${newChapters[chapter.chapterId] != null}">
-                        <tr><td colspan="8">
-                        <center>
-                            <c:forEach var="newPage" items="${newChapters[chapter.chapterId].pages}">
-                                ${newPage}<br/>
-                            </c:forEach>
-                        </center>
-                    </td></tr>
-                </c:if>--%>
+                    </tr>
             </c:forEach>
     </table><br/>
     <input type="submit" name="Save"/> <a href="cancel_upload.spr">Cancel</a>
+    <br/><br/>
+    <a href="delete_manga.spr?id=${manga.id}" onclick="return confirm('Really delete manga \'${manga.title}\'?');" >delete</a>
 </form:form>
 </body>
 </html>

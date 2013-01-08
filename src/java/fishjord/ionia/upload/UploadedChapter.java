@@ -4,7 +4,7 @@
  */
 package fishjord.ionia.upload;
 
-import java.util.ArrayList;
+import fishjord.ionia.upload.ArchiveTitleParser.Title;
 import java.util.List;
 
 /**
@@ -12,25 +12,19 @@ import java.util.List;
  * @author Jordan Fish <fishjord at msu.edu>
  */
 public class UploadedChapter {
-    String titleGuess;
-    String id;
+    Title titleGuess;
     List<UploadedPage> pages;
 
-    public UploadedChapter(String id, String titleGuess, List<UploadedPage> pages) {
+    public UploadedChapter(Title titleGuess, List<UploadedPage> pages) {
         this.titleGuess = titleGuess;
-        this.id = id;
         this.pages = pages;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public List<UploadedPage> getPages() {
         return pages;
     }
 
-    public String getTitleGuess() {
+    public Title getTitleGuess() {
         return titleGuess;
     }
 }

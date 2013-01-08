@@ -4,26 +4,25 @@
  */
 package fishjord.ionia.upload;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
+import fishjord.ionia.upload.ArchiveTitleParser.Title;
 
 /**
  *
  * @author fishjord
  */
 public class UploadedPage {
-    private String uploadedFileName;
+    private Title title;
     String uploadedFileType;
     private byte[] image;
     
-    public UploadedPage(String uploadedFileName, String uploadedFileType, byte[] image) {
-        this.uploadedFileName = uploadedFileName;
+    public UploadedPage(Title title, String uploadedFileType, byte[] image) {
+        this.title = title;
         this.uploadedFileType = uploadedFileType;
         this.image = image;
     }
 
-    public String getUploadedFileName() {
-        return uploadedFileName;
+    public Title getTitle() {
+        return title;
     }
 
     public String getUploadedFileType() {
@@ -36,6 +35,6 @@ public class UploadedPage {
     
     @Override
     public String toString() {
-        return this.uploadedFileName + " " + this.uploadedFileType;
+        return this.title + " " + this.uploadedFileType + " " + image;
     }
 }

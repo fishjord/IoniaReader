@@ -5,6 +5,7 @@
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@taglib prefix="t" tagdir="/WEB-INF/tags" %>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -24,16 +25,17 @@
     <span class="label">Mature</span><span class="field">${manga.mature}</span><br/>
     <br/><br/>
     <span class="label">Tags</span><c:forEach var="tag" items="${manga.tags}" varStatus="status">${tag}<c:if test="${not status.last}">, </c:if></c:forEach>
-            <table>
-                <tr>
-                    <th>Chapter</th><th>Pages</th><th>Uploaded</th>
-                </tr>
+    <table>
+        <tr>
+            <th>Chapter</th><th>Pages</th><th>Uploaded</th>
+        </tr>
         <c:forEach var="chapter" varStatus="status" items="${manga.chapters}">
             <tr>
                 <td><a href="<c:url value="/manga/${manga.id}/${chapter.id}/" />">${chapter.chapterTitle}</a></td>
-                <td>${chapter.numPages}</td>
+                <td>${fn:length(chapter.pages)}</td>
                 <td><c:if test="${chapter.uploadDate != null}"><fmt:formatDate value="${chapter.uploadDate.time}" /></c:if></td>
-            </tr>
+                </tr>
         </c:forEach>
     </table>
+    <a href="<c:url value="/admin/edit_manga.spr?id=${manga.id}" />">Edit</a>
 </t:wrapper>

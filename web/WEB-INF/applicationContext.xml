@@ -28,8 +28,8 @@
           p:password="manga" />-->
           
     <bean id="mangaDAO" class="fishjord.ionia.jcr.MangaDAO" destroy-method="close">
-        <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository</value></constructor-arg>
-        <constructor-arg type="java.lang.String"><value>/home/fishjord/NetBeansProjects/IoniaReader/repository.xml</value></constructor-arg>
+        <constructor-arg type="java.lang.String"><value>/users/fishjord/NetBeansProjects/IoniaReader/repository</value></constructor-arg>
+        <constructor-arg type="java.lang.String"><value>/users/fishjord/NetBeansProjects/IoniaReader/repository.xml</value></constructor-arg>
     </bean>
     
     <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">

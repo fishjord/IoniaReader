@@ -1,7 +1,3 @@
-add user support (user controls on /admin/* pages)
-    users can edit manga they uploaded
-    add editor role (admin?), can edit any manga
-    add deleter role, can delete manga/chapters of manga (low priority)
 manga listing page (implemented)
       sorting by update date, chapters,
       filtering by tags and genres
@@ -12,14 +8,8 @@ search based on
        circle
        scanlation group
        uploaded between?
-mature click through
 user feedback
      comments?
      likes?
      ratings?*
-read manga javascript
-     chapter jumping
-     page jumping
-jackrabbit
-	JAAS scrypt module
 	
