@@ -48,9 +48,8 @@ public class MangaController {
     public ModelAndView listManga(HttpSession session) {
         DAOSession daoSession = getDAOSession(session);
 
-        List<Manga> mangaList = daoSession.listManga();
         ModelAndView mav = new ModelAndView("list");
-        mav.addObject("mangaList", mangaList);
+        mav.addObject("mangaList", daoSession.iterator());
         return mav;
     }
 

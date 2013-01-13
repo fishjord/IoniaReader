@@ -9,6 +9,7 @@ import fishjord.ionia.db.Manga;
 import fishjord.ionia.db.Page;
 import fishjord.ionia.upload.ArchiveTitleParser.Title;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -47,7 +49,7 @@ public class UploadUtils {
                 uploadedChapter.titleGuess = title;
             }
 
-            Chapter c = new Chapter(title.getId(), title.getTitle(), chapNum, null);
+            Chapter c = new Chapter(title.getId(), title.getTitle(), title.getScanGroup(), chapNum, null);
 
             List<Page> chapterPages = new ArrayList();
             for(UploadedPage page : uploadedChapter.getPages()) {
@@ -105,7 +107,7 @@ public class UploadUtils {
             List<UploadedPage> pages = chapterMap.get(chapter);
             Collections.sort(pages, new Comparator<UploadedPage>() {
                 public int compare(UploadedPage o1, UploadedPage o2) {
-                    return String.CASE_INSENSITIVE_ORDER.compare(o1.getTitle().getTitle(), o1.getTitle().getTitle());
+                    return String.CASE_INSENSITIVE_ORDER.compare(o1.getTitle().getId(), o2.getTitle().getId());
                 }
             });
 
@@ -133,7 +135,6 @@ public class UploadUtils {
 
         ret.setId(title.getId());
         ret.setTitle(title.getTitle());
-        ret.setScanGroup(title.getScanGroup());
 
         return ret;
     }
@@ -149,18 +150,23 @@ public class UploadUtils {
         }
 
         if (buf.length > 3 && b1 == 0x47 && b2 == 0x49 && b3 == 0x46 && b4 == 0x38) {
-            return "imagegif";
+            return "image/gif";
         }
 
-        if (buf.length > 3 && b1 == 0xff && b2 == 0xd8 && b3 == 0xff && b4 == 0xe0) {
+        if (buf.length > 3 && b1 == 0xff && b2 == 0xd8) { //Bunch of sub-classes of jpegs, we don't really care, just that it's a jpeg
             return "image/jpeg";
         }
 
         if (buf.length > 3 && b1 == 0x89 && b2 == 0x50 && b3 == 0x4e && b4 == 0x47) {
             return "image/png";
         }
-
-        return null;
+        
+        try {
+            ImageIO.createImageInputStream(new ByteArrayInputStream(buf));
+            return "application/octet-stream";
+        } catch(Exception ignore) {
+            return null;
+        }
     }
 
     private static UploadedPage processEntry(ZipEntry entry, ZipInputStream zip) throws IOException {
@@ -168,8 +174,14 @@ public class UploadUtils {
 
         String format = guessFormat(buf);
         if(format == null) {
+            System.out.println(entry.getName());
             return null;
         }
+        
+        if(format.equals("application/octet-stream")) {
+            System.err.println("Didn't find a magic number for " + entry.getName() + " but ImageIO could parse it");
+        }
+        
         return new UploadedPage(ArchiveTitleParser.parse(entry.getName()), format, buf);
     }
 
@@ -198,10 +210,15 @@ public class UploadUtils {
         //String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\Angels_Wings_[lililicious].zip";
         //String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\not_loaded\\First_Love_Sisters_v2_[lililicious].zip";
         //String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\Aqua_Blue_Cinema_booklet_[lililicious].zip";
-        String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\A_Piece_of_Candy_[lililicious].zip";
+        //String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\A_Piece_of_Candy_[lililicious].zip";
+        //String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\All_My_Love_And_Lies_[lililicious].zip";
+        String testZip = "Z:\\fishjord\\projects\\lilicious_fetch\\downloads\\Adorable_to_Me_[lililicious].zip";
+        Upload upload = UploadUtils.fromZip(new File(testZip));
         
-        System.out.println(UploadUtils.fromZip(new File(testZip)).getManga());
-        System.out.println(UploadUtils.fromZip(new File(testZip)).getNewChapters());
-        System.out.println(UploadUtils.fromZip(new File(testZip)).getNewChapters().get(0).getPages().toString().replace(", T", "\nT"));
+        System.out.println(upload.getManga());
+        System.out.println();
+        System.out.println(upload.getNewChapters());
+        System.out.println();
+        System.out.println(upload.getNewChapters().get(0).getPages().toString().replace(", T", "\nT"));
     }
 }

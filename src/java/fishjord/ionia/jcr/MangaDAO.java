@@ -15,9 +15,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +38,8 @@ import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
+import javax.jcr.ValueFormatException;
+import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.jackrabbit.core.RepositoryImpl;
@@ -57,7 +61,7 @@ public class MangaDAO {
             RepositoryConfig config = RepositoryConfig.create(repoXml, repoDir);
             repo = RepositoryImpl.create(config);
 
-            anonSession = new DAOSession(repo.login());
+            anonSession = new DAOSession("anon", repo.login());
         } catch (Exception e) {
             throw new RuntimeException("Failed to connect to repository", e);
         }
@@ -69,7 +73,7 @@ public class MangaDAO {
 
     public DAOSession login(String username) {
         try {
-            return new DAOSession(repo.login(new SimpleCredentials("admin", "admin".toCharArray())));
+            return new DAOSession(username, repo.login(new SimpleCredentials("admin", "admin".toCharArray())));
         } catch (Exception e) {
             log.log(Level.SEVERE, "Failed to log user in", e);
             return null;
@@ -84,13 +88,14 @@ public class MangaDAO {
         ((RepositoryImpl) repo).shutdown();
     }
 
-    public static class DAOSession {
+    public static class DAOSession implements Iterable<Manga> {
 
-        private Session session;
-        private static Logger log = Logger.getLogger(DAOSession.class.getCanonicalName());
-        private Lock lock = new ReentrantLock();
+        private final Session session;
+        private static final Logger log = Logger.getLogger(DAOSession.class.getCanonicalName());
+        private final Lock lock = new ReentrantLock();
+        private String username;
 
-        public DAOSession(Session session) {
+        public DAOSession(String username, Session session) {
             this.session = session;
         }
 
@@ -127,8 +132,6 @@ public class MangaDAO {
         public void persist(Manga manga) {
             lock.lock();
             try {
-                ;
-
                 Node mangaNode;
                 if (!session.nodeExists("/manga/" + manga.getId())) {
                     manga.setUploadedDate(new GregorianCalendar());
@@ -139,20 +142,33 @@ public class MangaDAO {
                     mangaNode = session.getNode("/manga/" + manga.getId());
                 }
 
-                JCRUtils.setProperties(mangaNode, manga);
+                mangaNode.setProperty("Artist", manga.getArtist());
+                mangaNode.setProperty("Author", manga.getAuthor());
+                mangaNode.setProperty("Circle", manga.getCircle());
+                mangaNode.setProperty("Description", manga.getDescription());
+                mangaNode.setProperty("PublishedDate", manga.getPublishedDate());
+                mangaNode.setProperty("Publisher", manga.getPublisher());
+                mangaNode.setProperty("Title", manga.getTitle());
+                mangaNode.setProperty("UpdatedDate", manga.getUpdatedDate());
+                mangaNode.setProperty("UploadedBy", username);
+                mangaNode.setProperty("UploadedDate", manga.getUploadedDate());
 
-                Node chapterNode = mangaNode.getNode("chapters");
-                Node addTo;
+                Node chapParentNode = mangaNode.getNode("chapters");
+                Node chapterNode;
                 for (Chapter chap : manga.getChapters()) {
-                    if (!chapterNode.hasNode(chap.getId())) {
+                    if (!chapParentNode.hasNode(chap.getId())) {
                         chap.setUploadDate(new GregorianCalendar());
-                        addTo = chapterNode.addNode(chap.getId());
-                        addTo.addNode("pages");
+                        chapterNode = chapParentNode.addNode(chap.getId());
+                        chapterNode.addNode("pages");
                     } else {
-                        addTo = chapterNode.getNode(chap.getId());
+                        chapterNode = chapParentNode.getNode(chap.getId());
                     }
 
-                    JCRUtils.setProperties(addTo, chap);
+                    chapterNode.setProperty("ChapterNumber", chap.getChapterNumber());
+                    chapterNode.setProperty("ChapterTitle", chap.getChapterTitle());
+                    chapterNode.setProperty("UploadedBy", username);
+                    chapterNode.setProperty("UploadedBy", chap.getScanGroup());
+                    chapterNode.setProperty("UploadDate", chap.getUploadDate());
                 }
 
                 this.setMultivalue(mangaNode, "tags", manga.getTags());
@@ -237,8 +253,8 @@ public class MangaDAO {
             } finally {
                 lock.unlock();
             }
-            
-            
+
+
             return false;
         }
 
@@ -256,26 +272,63 @@ public class MangaDAO {
             } finally {
                 lock.unlock();
             }
-            
-            
+
+
             return false;
+        }
+
+        private String readString(Node readFrom, String prop) throws ValueFormatException, RepositoryException {
+            try {
+                return readFrom.getProperty(prop).getString();
+            } catch (PathNotFoundException e) {
+                return null;
+            }
+        }
+
+        private Calendar readDate(Node readFrom, String prop) throws ValueFormatException, RepositoryException {
+            try {
+                return readFrom.getProperty(prop).getDate();
+            } catch (PathNotFoundException e) {
+                return null;
+            }
+        }
+
+        private int readInt(Node readFrom, String prop) throws ValueFormatException, RepositoryException {
+            try {
+                return (int) readFrom.getProperty(prop).getLong();
+            } catch (PathNotFoundException e) {
+                return 0;
+            }
         }
 
         private Manga getManga(Node readFrom) throws Exception {
             Manga ret = new Manga();
-            JCRUtils.getProperties(readFrom, ret);
+            ret.setId(readFrom.getName());
+            ret.setArtist(readString(readFrom, "Artist"));
+            ret.setAuthor(readString(readFrom, "Author"));
+            ret.setCircle(readString(readFrom, "Circle"));
+            ret.setDescription(readString(readFrom, "Description"));
+            ret.setPublishedDate(readDate(readFrom, "PublishedDate"));
+            ret.setPublisher(readString(readFrom, "Publisher"));
+            ret.setTitle(readString(readFrom, "Title"));
+            ret.setUpdatedDate(readDate(readFrom, "UpdatedDate"));
+            ret.setUploadedBy(readString(readFrom, "UploadedBy"));
+            ret.setUploadedDate(readDate(readFrom, "UploadedDate"));
 
             List<Chapter> chapters = new ArrayList();
             for (Node chapNode : JcrUtils.getChildNodes(readFrom.getNode("chapters"))) {
                 Chapter chapter = new Chapter();
-                JCRUtils.getProperties(chapNode, chapter);
-                
+                chapter.setId(chapNode.getName());
+                chapter.setChapterNumber(readInt(chapNode, "ChapterNumber"));
+                chapter.setChapterTitle(readString(chapNode, "ChapterTitle"));
+                chapter.setUploadDate(readDate(chapNode, "UploadDate"));
+
                 List<Page> pages = new ArrayList();
                 for (Node pageNode : JcrUtils.getChildNodes(chapNode.getNode("pages"))) {
                     pages.add(new Page(pageNode.getName()));
                 }
                 chapter.setPages(pages);
-                
+
                 chapters.add(chapter);
             }
 
@@ -290,7 +343,7 @@ public class MangaDAO {
 
             try {
                 Node n = session.getNode("/manga/" + manga + "/chapters/" + chapter + "/pages/" + page);
-                
+
                 if (n != null) {
                     n = n.getNode("jcr:content");
                     Binary data = n.getProperty("jcr:data").getBinary();
@@ -309,24 +362,6 @@ public class MangaDAO {
             }
 
             return false;
-        }
-
-        private int countChildren(Node n) {
-            try {
-                int ret = 0;
-                NodeIterator iter = n.getNodes();
-                Node child;
-                while (iter.hasNext()) {
-                    child = iter.nextNode();
-                    if (!child.getName().startsWith("jcr:")) {
-                        ret++;
-                    }
-                }
-
-                return ret;
-            } catch (RepositoryException e) {
-                return -1;
-            }
         }
 
         private void setMultivalue(Node writeTo, String propName, Set<String> multivalues) {
@@ -362,6 +397,67 @@ public class MangaDAO {
             } catch (Exception e) {
                 log.log(Level.SEVERE, "Exception retrieving tags ", e);
                 return null;
+            }
+        }
+
+        public Iterator<Manga> iterator() {
+            try {
+                final NodeIterator iter = session.getNode("/manga").getNodes();
+
+                return new MangaIterator(iter);
+            } catch (Exception e) {
+                log.log(Level.SEVERE, "Failed to create manga iterator", e);
+            }
+            return EmptyIterator.INSTANCE;
+        }
+
+        public class MangaIterator implements Iterator<Manga> {
+
+            private Manga next;
+            private NodeIterator iter;
+
+            public MangaIterator(NodeIterator iter) {
+                next = nextManga();
+            }
+
+            private Manga nextManga() {
+                Manga ret = null;
+
+                while (iter.hasNext()) {
+                    Node n = iter.nextNode();
+                    lock.lock();
+
+                    try {
+                        Manga tmp = DAOSession.this.getManga(n);
+                        if(tmp.isPrivate() && !username.equals(tmp.getUploadedBy())) {
+                            continue;
+                        }
+                        
+                        ret = tmp;
+                        break;                        
+                    } catch (Exception e) {
+                        log.log(Level.SEVERE, "Exception reading next manga", e);
+                        return null;
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+
+                return ret;
+            }
+
+            public boolean hasNext() {
+                return next != null;
+            }
+
+            public Manga next() {
+                Manga ret = next;
+                next = nextManga();
+                return ret;
+            }
+
+            public void remove() {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
         }
     }

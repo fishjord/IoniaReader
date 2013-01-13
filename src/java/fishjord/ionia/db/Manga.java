@@ -23,13 +23,9 @@ public class Manga {
     private String artist;
     private String publisher;
     private String circle;
-    private String scanGroup;
     private String description;
-    @DateTimeFormat(iso=ISO.DATE)
     private Calendar publishedDate;
-    @DateTimeFormat(iso=ISO.DATE_TIME)
     private Calendar uploadedDate;
-    @DateTimeFormat(iso=ISO.DATE_TIME)
     private Calendar updatedDate;
     private String uploadedBy;
     
@@ -41,14 +37,13 @@ public class Manga {
         tags = new HashSet();
     }
 
-    Manga(String id, String title, String author, String artist, String publisher, String circle, String scanGroup, String description, Calendar publishedDate, Calendar uploadedDate, Calendar updatedDate, String uploadedBy, List<Chapter> chapters, Set<String> tags) {
+    Manga(String id, String title, String author, String artist, String publisher, String circle, String description, Calendar publishedDate, Calendar uploadedDate, Calendar updatedDate, String uploadedBy, List<Chapter> chapters, Set<String> tags) {
         this.id = id;
         this.title = title;
         this.author = author;
         this.artist = artist;
         this.publisher = publisher;
         this.circle = circle;
-        this.scanGroup = scanGroup;
         this.description = description;
         this.publishedDate = publishedDate;
         this.uploadedDate = uploadedDate;
@@ -82,10 +77,6 @@ public class Manga {
         return circle;
     }
 
-    public String getScanGroup() {
-        return scanGroup;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -108,6 +99,10 @@ public class Manga {
 
     public boolean isMature() {
         return tags.contains("mature");
+    }
+
+    public boolean isPrivate() {
+        return tags.contains("private");
     }
 
     public List<Chapter> getChapters() {
@@ -140,10 +135,6 @@ public class Manga {
 
     public void setCircle(String circle) {
         this.circle = circle;
-    }
-
-    public void setScanGroup(String scanGroup) {
-        this.scanGroup = scanGroup;
     }
 
     public void setDescription(String description) {
@@ -180,6 +171,6 @@ public class Manga {
 
     @Override
     public String toString() {
-        return "Manga{" + "id=" + id + ", title=" + title + ", author=" + author + ", artist=" + artist + ", publisher=" + publisher + ", circle=" + circle + ", scanGroup=" + scanGroup + ", description=" + description + ", publishedDate=" + publishedDate + ", uploadedDate=" + uploadedDate + ", updatedDate=" + updatedDate + ", uploadedBy=" + uploadedBy + ", chapters=" + chapters + ", tags=" + tags + '}';
+        return "Manga{" + "id=" + id + ", title=" + title + ", author=" + author + ", artist=" + artist + ", publisher=" + publisher + ", circle=" + circle + ", description=" + description + ", publishedDate=" + publishedDate + ", uploadedDate=" + uploadedDate + ", updatedDate=" + updatedDate + ", uploadedBy=" + uploadedBy + ", chapters=" + chapters + ", tags=" + tags + '}';
     }
 }

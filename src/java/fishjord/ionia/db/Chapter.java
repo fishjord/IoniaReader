@@ -18,17 +18,19 @@ public class Chapter {
     private Calendar uploadDate;
     private String chapterTitle;
     private Integer chapterNumber;
+    private String scanGroup;
     
     private List<Page> pages;
     
     public Chapter() {
     }
     
-    public Chapter(String id, String chapterTitle, Integer chapterNumber, Calendar uploadDate) {
+    public Chapter(String id, String chapterTitle, String scanGroup, Integer chapterNumber, Calendar uploadDate) {
         this.id = id;
         this.uploadDate = uploadDate;
         this.chapterTitle = chapterTitle;
         this.chapterNumber = chapterNumber;
+        this.scanGroup = scanGroup;
     }
 
     public String getId() {
@@ -71,8 +73,16 @@ public class Chapter {
         this.pages = pages;
     }
 
+    public String getScanGroup() {
+        return scanGroup;
+    }
+
+    public void setScanGroup(String scanGroup) {
+        this.scanGroup = scanGroup;
+    }
+
     @Override
     public String toString() {
-        return "Chapter{" + "id=" + id + ", uploadDate=" + uploadDate + ", chapterTitle=" + chapterTitle + ", chapterNumber=" + chapterNumber + ", pages=" + pages + '}';
+        return "Chapter{" + "id=" + id + ", uploadDate=" + uploadDate + ", chapterTitle=" + chapterTitle + ", chapterNumber=" + chapterNumber + ", scanGroup=" + scanGroup + ", pages=" + pages + '}';
     }
 }

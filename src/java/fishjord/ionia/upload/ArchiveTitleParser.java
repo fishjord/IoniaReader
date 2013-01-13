@@ -89,7 +89,7 @@ public class ArchiveTitleParser {
                 return false;
             }
             return true;
-        }        
+        }
     }
 
     public static Title parse(String name) {
@@ -115,23 +115,27 @@ public class ArchiveTitleParser {
         String vol = (parentTitle == null) ? null : parentTitle.getVolume();
         String scanGroup = (parentTitle == null) ? null : parentTitle.getScanGroup();
         String magazine = (parentTitle == null) ? null : parentTitle.getMagazine();
-
-        for (String lexeme : lexemes) {
-            if (lexeme.startsWith("[") && lexeme.endsWith("]")) {
-                scanGroup = lexeme.substring(1, lexeme.length() - 1);
-            } else if (lexeme.startsWith("(") && lexeme.endsWith(")")) {
-                magazine = lexeme.substring(1, lexeme.length() - 1);
-            } else if (lexeme.matches("ch?\\d+")) {
-                chapter = "Chapter " + lexeme.replaceAll("[^\\d]+", "");
-            } else if (lexeme.matches("v(ol)?\\d+")) {
-                vol = "Volume " + lexeme.replaceAll("[^\\d]+", "");;
-            } else {
-                titleBuilder.append(lexeme).append(" ");
+        String title;
+        if (name.startsWith("_")) {
+            title = name;
+        } else {
+            for (String lexeme : lexemes) {
+                if (lexeme.startsWith("[") && lexeme.endsWith("]")) {
+                    scanGroup = lexeme.substring(1, lexeme.length() - 1);
+                } else if (lexeme.startsWith("(") && lexeme.endsWith(")")) {
+                    magazine = lexeme.substring(1, lexeme.length() - 1);
+                } else if (lexeme.matches("ch?\\d+")) {
+                    chapter = "Chapter " + lexeme.replaceAll("[^\\d]+", "");
+                } else if (lexeme.matches("v(ol)?\\d+")) {
+                    vol = "Volume " + lexeme.replaceAll("[^\\d]+", "");;
+                } else {
+                    titleBuilder.append(lexeme).append(" ");
+                }
             }
-        }
 
-        String title = titleBuilder.toString().trim();
-        String id = title.replaceAll("[^0-9a-zA-Z ]+", "").replaceAll("\\s+", "_").toLowerCase();
+            title = titleBuilder.toString().trim();
+        }
+        String id = title.replaceAll("[^0-9a-zA-Z_ ]+", "").replaceAll("\\s+", "_").toLowerCase();
 
         return new Title(id, magazine, title, scanGroup, vol, chapter);
     }

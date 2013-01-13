@@ -17,6 +17,16 @@
         <div class="container">
             <div class="header">
                 <a href="<c:url value="/" />" style="{}"><h1 class="banner" style="font-style: italic">Ionia Reader</h1></a>
+                <div style="position: absolute;top: 0;right: 0;height:50px;width: 200px;">
+                    <c:choose>
+                        <c:when test="${mangaUser == null or mangaUser.anonymous}">
+                            <a href="<c:url value="/admin/bounce.spr"><c:param name="to" value="${pageContext.request.requestURI}" /></c:url>">login</a>
+                        </c:when>
+                        <c:otherwise>
+                            Hello, ${mangaUser.displayName}&nbsp;|&nbsp;<c:if test="${manga != null}"><a href="<c:url value="/admin/edit_manga.spr"><c:param name="id" value="${manga.id}"/></c:url>">Edit ${manga.title}</a>&nbsp;|&nbsp;</c:if><a href="<c:url value="/admin/upload.spr" />">Upload Manga</a>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
             </div>
             <div class="content">
               <jsp:doBody/>                
