@@ -1,0 +1,60 @@
+QUICKSTART
+-----------
+
+1. First get the libraries with ivy and copy them to the WEB-INF directory:
+  ant resolve && cp lib/* web/WEB-INF/lib
+
+2. Modify web/WEB-INF/application-context.xml and configure the MangaDAO bean to point to your jackrabbit jcr repository
+
+3. Compile the project with ant dist, it may be easier to get up and running if you open the project with NetBeans first and resolve the dependices (mostly on a j2ee server).
+
+4. Deploy the war in dist/ to your j2ee server (tomcat, glass fish, jboss etc), tested with tomcat 7.0.34
+   a. To login there must be a user in the 'manga_user' role
+   b. can deploy via ant run-deploy, j2ee web interface, copy to the webapps dir, an entry in the webserver server.xml
+
+Setting up your own manga repository
+-------------------------------------
+
+1. Download the jackrabbit-standalone jar for jackrabbit >= 2.4
+
+2. Start the JCRShell
+
+  java -cp build/web/WEB-INF/classes/:path/to/jackrabbit-standalone-2.4.3.jar fishjord.ionia.cli.JCRShell
+
+  This command starts a shell you can interact with the manga repository using.  The command prompt starts with >
+
+  Create a new repository (this will take a few moments)
+  > new
+  Connect to the newly created repository
+  > connect repository repository.xml
+  Login as a named user (this is only required to make changes, not read), there are no access controls (any username will work, behind the scenes it connects as admin/admin, the default username and password for Jackrabbit >= 2.4 (prior any username/password would be accepted)
+  > login <username>
+  Add a manga
+  > add_manga <path/to/manga.zip>
+  Adding tags
+  > add_tags
+  <tag1>
+  <tag2>
+  ...
+  <tagn>
+  CTRL+^D
+  logout and close the connection to the repository (not required)
+  > logout
+  > close
+
+Uploading manga
+----------------
+
+IoniaReader only supports zip file uploads and has some special rules when parsing zip file names. The parser first tokenizes the uploaded file name splitting on '_' or ' ' after removing the .zip extension. The parser assumse any non-special token is part of the title of the manga.  If the name has a token of the form c(h)[0-9]+ it assumes this is a chapter number.  If the name has a token of the for v(ol)[0-9]+ it assumes this is the volume name.  Any token that starts with [ and ends with ] is assumed to contain the name of the scanlation group.  Any token starting with ( and ending with ) is assumed to be a magazine name (not currently used, but parsed).
+
+Any sub directories in a zip file is assumed to be a logical chapter, sub elements (sub directory, pages) all inherit their parent's information: chapter name, volume name, and scan group.  If a subdirectory contains a path that has a chapter name embedded in it it will overwrite that information.  The upload tool can handle png, jpg, gif and bmp images, all other files are ignored.
+
+After a zip file is uploaded it is postproccessed to resort in to chapters based on archive structure, and page file name.  If there is no chapter information in a zip by default the name is selected by the next available id.  Pages are also resorted by alphabetical order.
+
+This should work well in most cases, hopefully, manga with the same name update the entry, not overwrites, and appends the chapter to the list.  Chapters and pages cannot be reordered, so some care is needed to make sure they upload correctly.
+
+1. From the website (default path = /MangaReader) login using a user in the manga_user role (link in the upper righthand corner)
+
+2. Click on the upload link in the upper lefthand corner
+
+3. Upload your zip file, the upload is persisted after uploading 
