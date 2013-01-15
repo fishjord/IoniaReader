@@ -35,7 +35,9 @@ public class LoginFilter implements Filter {
         MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
         
         if(user == null || user.isAnonymous()) {
-            SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
+	    if(!SingleObjectSessionUtils.isInSession(session, ContextRelativeRedirectURL.class)) {
+		SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
+	    }
             response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/login.spr"));
         } else {
             fc.doFilter(sr, sr1);

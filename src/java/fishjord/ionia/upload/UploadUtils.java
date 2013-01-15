@@ -82,12 +82,11 @@ public class UploadUtils {
                 }
             }
 
-            if (!remainingPages.isEmpty()) {
-                String chapterTitle = (chapter.getTitleGuess() != null) ? chapter.getTitleGuess().getChapter() : null;
-                chapterMap.put(chapterTitle, remainingPages);
-            }
+	    if (!remainingPages.isEmpty()) {
+		String chapterTitle = null;
+		chapterMap.put(chapterTitle, remainingPages);
+	    }
         }
-
 
         List<String> chapterNames = new ArrayList(chapterMap.keySet());
         Collections.sort(chapterNames, new Comparator<String>() {
@@ -103,20 +102,24 @@ public class UploadUtils {
                 }
             }
         });
+
         for (String chapter : chapterNames) {
             List<UploadedPage> pages = chapterMap.get(chapter);
+	    if(pages.isEmpty()) {
+		continue;
+	    }
+
             Collections.sort(pages, new Comparator<UploadedPage>() {
                 public int compare(UploadedPage o1, UploadedPage o2) {
                     return String.CASE_INSENSITIVE_ORDER.compare(o1.getTitle().getId(), o2.getTitle().getId());
                 }
             });
+	    Title pageTitle = pages.get(0).getTitle();
 
-            Title title;
+            Title title = null;
             if (chapter != null) {
-                title = new Title(chapter.toLowerCase().replace(" ", "_"), null, chapter, null, null, chapter);
-            } else if (chapterNames.size() == 1) {
-                title = null;
-            } else {
+		title = new Title(chapter.toLowerCase().replace(" ", "_"), pageTitle.getMagazine(), chapter, pageTitle.getScanGroup(), pageTitle.getVolume(), chapter);
+            } else if (chapterNames.size() != 1) {
                 continue;
             }
 
@@ -169,20 +172,22 @@ public class UploadUtils {
         }
     }
 
-    private static UploadedPage processEntry(ZipEntry entry, ZipInputStream zip) throws IOException {
-        byte[] buf = IOUtils.toByteArray(zip);
-
-        String format = guessFormat(buf);
-        if(format == null) {
-            System.out.println(entry.getName());
-            return null;
-        }
+    private static UploadedPage processEntry(Title parent, ZipEntry entry, ZipInputStream zip) throws IOException {
+	byte[] buf;
+	String format = "application/octet-stream";
+	buf = IOUtils.toByteArray(zip);
+	
+	format = guessFormat(buf);
+	if(format == null) {
+	    System.out.println(entry.getName());
+	    return null;
+	}
+	
+	if(format.equals("application/octet-stream")) {
+	    System.err.println("Didn't find a magic number for " + entry.getName() + " but ImageIO could parse it");
+	}
         
-        if(format.equals("application/octet-stream")) {
-            System.err.println("Didn't find a magic number for " + entry.getName() + " but ImageIO could parse it");
-        }
-        
-        return new UploadedPage(ArchiveTitleParser.parse(entry.getName()), format, buf);
+        return new UploadedPage(ArchiveTitleParser.parse(entry.getName(), parent), format, buf);
     }
 
     public static List<UploadedChapter> processZipArchive(Title titleGuess, ZipInputStream zip) throws IOException {
@@ -194,7 +199,7 @@ public class UploadUtils {
             if (entry.isDirectory()) {
                 ret.addAll(processZipArchive(ArchiveTitleParser.parse(entry.getName(), titleGuess), zip));
             } else {
-                UploadedPage page = processEntry(entry, zip);
+                UploadedPage page = processEntry(titleGuess, entry, zip);
 
                 if (page != null) {
                     pages.add(page);

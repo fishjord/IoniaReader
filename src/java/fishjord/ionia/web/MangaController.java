@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  *
@@ -66,10 +67,9 @@ public class MangaController {
             response.sendError(404);
             return null;
         }
+	SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
 
         if (m.isMature() && (user == null || !user.isMatureOk())) {
-            ContextRelativeRedirectURL redirect = new ContextRelativeRedirectURL(request);
-            SingleObjectSessionUtils.addToSession(session, redirect);
             return new ModelAndView("redirect:/mature_warning.spr");
         }
 
@@ -93,9 +93,9 @@ public class MangaController {
             return null;
         }
 
+	SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
+
         if (m.isMature() && (user == null || !user.isMatureOk())) {
-            ContextRelativeRedirectURL redirect = new ContextRelativeRedirectURL(request);
-            SingleObjectSessionUtils.addToSession(session, redirect);
             return new ModelAndView("redirect:/mature_warning.spr");
         }
 
@@ -160,14 +160,24 @@ public class MangaController {
         }
 
         user.setMatureOk(ok);
-        if (ok) {
-            ContextRelativeRedirectURL url = SingleObjectSessionUtils.getFromSession(session, ContextRelativeRedirectURL.class);
-            if (url != null) {
-                SingleObjectSessionUtils.removeFromSession(session, url);
-                response.sendRedirect(url.getRedirectUrl());
-                return null;
-            }
-        }
-        return new ModelAndView("redirect:/");
+
+        return new ModelAndView("redirect:/bounce.spr");
+    }
+
+    @RequestMapping("/bounce.spr")
+    public ModelAndView bounce(HttpSession session, HttpServletResponse response) throws IOException {
+	ContextRelativeRedirectURL url = SingleObjectSessionUtils.getFromSession(session, ContextRelativeRedirectURL.class);
+	if (url != null) {
+	    SingleObjectSessionUtils.removeFromSession(session, url);
+	    response.sendRedirect(url.getRedirectUrl());
+	    return null;
+	}
+
+	return new ModelAndView("redirect:/");    
+    }
+
+    @RequestMapping("/admin/bounce.spr")
+    public ModelAndView bounceProtected(HttpSession session, HttpServletResponse response)  throws IOException {
+	return bounce(session, response);
     }
 }

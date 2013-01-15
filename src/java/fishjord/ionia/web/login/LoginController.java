@@ -19,6 +19,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  *
@@ -29,20 +30,20 @@ public class LoginController {
     @Autowired
     private MangaDAO dao;
     //private MangaReaderDB mangaDb;
-    
+
+    @RequestMapping("/logout.spr")
+    public ModelAndView handleLogout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	request.getSession().invalidate();
+	return new ModelAndView("redirect:/bounce.spr");
+    }
+
     @RequestMapping("/login.spr")
-    public void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public ModelAndView handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
         //MangaUser user = mangaDb.getMangaUser(request.getUserPrincipal().getName());
         MangaUser user = new MangaUser(request.getUserPrincipal().getName(), request.getUserPrincipal().getName(), new Date(), new HashSet(), dao.login(request.getUserPrincipal().getName()));
         SingleObjectSessionUtils.addToSession(session, user);
-        
-        ContextRelativeRedirectURL url = SingleObjectSessionUtils.getFromSession(session, ContextRelativeRedirectURL.class);
-                
-        if(url != null) {
-            response.sendRedirect(response.encodeRedirectURL(url.getRedirectUrl()));
-        } else {
-            response.sendRedirect(request.getContextPath());
-        }
+
+	return new ModelAndView("redirect:/admin/bounce.spr");
     }
 }

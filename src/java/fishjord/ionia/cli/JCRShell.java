@@ -38,6 +38,7 @@ public class JCRShell {
                 System.err.println("Added " + zip + " successfully");
             } catch (Exception e) {
                 System.err.println("Failed to persist " + zip + ": " + e.getMessage());
+		e.printStackTrace();
             }
         }
     }
@@ -115,7 +116,9 @@ public class JCRShell {
                 return;
             }
             MangaDAO dao = new MangaDAO(args[0], args[1]);
-            DAOSession session = dao.login("cli_shell");
+	    String username = System.getProperty("ionia.username", "cli_shell");
+
+            DAOSession session = dao.login(username);
             args = Arrays.copyOfRange(args, 2, args.length);
 
             processCommand(cmd, args, session);

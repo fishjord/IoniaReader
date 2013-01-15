@@ -114,6 +114,8 @@ public class UploadController {
         MangaUser user = SingleObjectSessionUtils.getFromSession(session, MangaUser.class);
         ModelAndView mav = new ModelAndView();
 
+	SingleObjectSessionUtils.addToSession(session, new ContextRelativeRedirectURL(request));
+
         //if (!user.isUserInRole(MangaUserRole.createManga)) {
         //    mav.setViewName("upload");
         //    mav.addObject("error", "User " + user.getDisplayName() + " cannot create manga");
@@ -246,6 +248,6 @@ public class UploadController {
     @RequestMapping(value = "/admin/cancel_upload.spr")
     public ModelAndView cancelUpload(HttpSession session) {
         SingleObjectSessionUtils.removeFromSession(session, Upload.class);
-        return new ModelAndView("redirect:upload.spr");
+        return new ModelAndView("redirect:/admin/bounce.spr");
     }
 }

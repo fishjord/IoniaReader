@@ -16,7 +16,6 @@
     <span class="label">Artist</span><span class="field">${manga.artist}</span><br/>
     <span class="label">Publisher</span><span class="field">${manga.publisher}</span><br/>
     <span class="label">Circle</span><span class="field">${manga.circle}</span><br/>
-    <span class="label">Scanlation Group</span><span class="field">${manga.scanGroup}</span><br/>
     <span class="label">Description</span><span class="field">${manga.description}</span><br/>
     <span class="label">Published Date (yyyy-mm-dd)</span><span class="field"><c:if test="${manga.publishedDate != null}"><fmt:formatDate value="${manga.publishedDate.time}" /></c:if></span><br/>
     <span class="label">Uploaded On</span><span class="field"><c:if test="${manga.uploadedDate != null}"><fmt:formatDate value="${manga.uploadedDate.time}" /></c:if></span><br/>
@@ -34,6 +33,7 @@
                 <td><a href="<c:url value="/manga/${manga.id}/${chapter.id}/" />">${chapter.chapterTitle}</a></td>
                 <td>${fn:length(chapter.pages)}</td>
                 <td><c:if test="${chapter.uploadDate != null}"><fmt:formatDate value="${chapter.uploadDate.time}" /></c:if></td>
+                <td>${chapter.scanGroup}</td>
                 </tr>
         </c:forEach>
     </table>

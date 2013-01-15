@@ -96,6 +96,7 @@ public class MangaDAO {
         private String username;
 
         public DAOSession(String username, Session session) {
+	    this.username = username;
             this.session = session;
         }
 
@@ -124,6 +125,7 @@ public class MangaDAO {
                 session.save();
             } catch (Exception e) {
                 log.log(Level.SEVERE, "Error persisting new chapters", e);
+		e.printStackTrace();
             } finally {
                 lock.unlock();
             }
@@ -134,9 +136,9 @@ public class MangaDAO {
             try {
                 Node mangaNode;
                 if (!session.nodeExists("/manga/" + manga.getId())) {
-                    manga.setUploadedDate(new GregorianCalendar());
-                    manga.setUploadedBy(session.getUserID());
                     mangaNode = JcrUtils.getOrAddNode(session.getRootNode(), "manga").addNode(manga.getId());
+		    mangaNode.setProperty("UploadedBy", username);
+		    mangaNode.setProperty("UploadedDate", new GregorianCalendar());
                     mangaNode.addNode("chapters");
                 } else {
                     mangaNode = session.getNode("/manga/" + manga.getId());
@@ -150,15 +152,15 @@ public class MangaDAO {
                 mangaNode.setProperty("Publisher", manga.getPublisher());
                 mangaNode.setProperty("Title", manga.getTitle());
                 mangaNode.setProperty("UpdatedDate", manga.getUpdatedDate());
-                mangaNode.setProperty("UploadedBy", username);
-                mangaNode.setProperty("UploadedDate", manga.getUploadedDate());
 
                 Node chapParentNode = mangaNode.getNode("chapters");
                 Node chapterNode;
                 for (Chapter chap : manga.getChapters()) {
                     if (!chapParentNode.hasNode(chap.getId())) {
-                        chap.setUploadDate(new GregorianCalendar());
                         chapterNode = chapParentNode.addNode(chap.getId());
+			chapterNode.setProperty("UploadedBy", username);
+			chapterNode.setProperty("UploadDate", new GregorianCalendar());
+
                         chapterNode.addNode("pages");
                     } else {
                         chapterNode = chapParentNode.getNode(chap.getId());
@@ -166,9 +168,7 @@ public class MangaDAO {
 
                     chapterNode.setProperty("ChapterNumber", chap.getChapterNumber());
                     chapterNode.setProperty("ChapterTitle", chap.getChapterTitle());
-                    chapterNode.setProperty("UploadedBy", username);
-                    chapterNode.setProperty("UploadedBy", chap.getScanGroup());
-                    chapterNode.setProperty("UploadDate", chap.getUploadDate());
+                    chapterNode.setProperty("ScanGroup", chap.getScanGroup());
                 }
 
                 this.setMultivalue(mangaNode, "tags", manga.getTags());
@@ -176,6 +176,7 @@ public class MangaDAO {
                 session.save();
             } catch (Exception e) {
                 log.log(Level.SEVERE, "Failed to persist manga " + manga.getId(), e);
+		e.printStackTrace();
             } finally {
                 lock.unlock();
             }
@@ -322,6 +323,7 @@ public class MangaDAO {
                 chapter.setChapterNumber(readInt(chapNode, "ChapterNumber"));
                 chapter.setChapterTitle(readString(chapNode, "ChapterTitle"));
                 chapter.setUploadDate(readDate(chapNode, "UploadDate"));
+		chapter.setScanGroup(readString(chapNode, "ScanGroup"));
 
                 List<Page> pages = new ArrayList();
                 for (Node pageNode : JcrUtils.getChildNodes(chapNode.getNode("pages"))) {
@@ -417,6 +419,7 @@ public class MangaDAO {
             private NodeIterator iter;
 
             public MangaIterator(NodeIterator iter) {
+		this.iter = iter;
                 next = nextManga();
             }
 

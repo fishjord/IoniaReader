@@ -20,7 +20,7 @@
                 <td>${manga.artist}</td>
                 <td>${manga.publisher}</td>
                 <td>${manga.circle}</td>
-                <td>${manga.scanGroup}</td>
+                <td>${manga.uploadedBy}</td>
                 <td>${manga.description}</td>
                 <td><c:if test="${manga.publishedDate != null}"><fmt:formatDate value="${manga.publishedDate.time}" /></c:if></td>
                 <td><c:if test="${manga.uploadedDate != null}"><fmt:formatDate value="${manga.uploadedDate.time}" /></c:if></td>

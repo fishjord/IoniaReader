@@ -47,7 +47,6 @@
             
         function load_page() {
             document.getElementById("manga_page").src = target_url + pages[page]; 
-            window.scrollTo(0,0);
             document.getElementById('top_page_select').value = (page + 1);
             document.getElementById('bottom_page_select').value = (page + 1);
         }
@@ -75,7 +74,7 @@
             <option value="${page}">${page}</option>
         </c:forEach>
     </select><br/>
-    <a href="javascript:void(0);" onclick="next_page();"><img style="height:900px;margin: 0 auto;display: block;" id="manga_page" /></a><br/>
+    <a href="javascript:void(0);" onclick="next_page();"><img style="height:900px;margin: 0 auto;display: block;" id="manga_page" onload="javascript:window.scrollTo(0,0);"/></a><br/>
     
     <select id="bottom_chap_select" onchange="javascript:chap_change('bottom_chap_select');">
         <c:forEach items="${manga.chapters}" var="c">
